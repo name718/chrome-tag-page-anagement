@@ -1146,6 +1146,8 @@ onMounted(async () => {
   cursor: pointer;
   border-bottom: 1px solid rgba(0,0,0,0.1);
   transition: all 0.3s ease;
+  position: relative;
+  z-index: 50;
 }
 
 .group-header:hover {
@@ -1201,6 +1203,8 @@ onMounted(async () => {
   display: flex;
   gap: 4px;
   align-items: center;
+  position: relative;
+  z-index: 100;
 }
 
 
@@ -2243,9 +2247,18 @@ onMounted(async () => {
   position: relative !important;
 }
 
+/* 全局tooltip样式增强 */
+.tooltip::before,
+.tooltip::after {
+  position: fixed !important;
+  z-index: 999999 !important;
+  pointer-events: none !important;
+  will-change: opacity, visibility !important;
+}
+
 .tooltip::before {
   content: attr(data-tooltip) !important;
-  position: absolute !important;
+  position: fixed !important;
   bottom: 100% !important;
   left: 50% !important;
   transform: translateX(-50%) !important;
@@ -2258,7 +2271,7 @@ onMounted(async () => {
   opacity: 0 !important;
   visibility: hidden !important;
   transition: all 0.2s ease !important;
-  z-index: 9999 !important;
+  z-index: 999999 !important;
   pointer-events: none !important;
   margin-bottom: 5px !important;
   font-weight: normal !important;
@@ -2267,7 +2280,7 @@ onMounted(async () => {
 
 .tooltip::after {
   content: '' !important;
-  position: absolute !important;
+  position: fixed !important;
   bottom: 100% !important;
   left: 50% !important;
   transform: translateX(-50%) !important;
@@ -2276,7 +2289,7 @@ onMounted(async () => {
   opacity: 0 !important;
   visibility: hidden !important;
   transition: all 0.2s ease !important;
-  z-index: 9999 !important;
+  z-index: 999999 !important;
   pointer-events: none !important;
   margin-bottom: 1px !important;
 }
@@ -2285,6 +2298,109 @@ onMounted(async () => {
 .tooltip:hover::after {
   opacity: 1 !important;
   visibility: visible !important;
+}
+
+/* 分组操作按钮的特殊tooltip样式 */
+.group-actions .tooltip::before {
+  bottom: 150% !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  white-space: nowrap !important;
+  min-width: max-content !important;
+  z-index: 99999 !important;
+  position: fixed !important;
+  margin-bottom: 10px !important;
+}
+
+.group-actions .tooltip::after {
+  bottom: 150% !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 99999 !important;
+  position: fixed !important;
+  margin-bottom: 6px !important;
+}
+
+/* 确保分组操作区域有足够的z-index */
+.group-actions {
+  position: relative !important;
+  z-index: 100 !important;
+}
+
+/* 拖拽手柄的tooltip */
+.drag-handle.tooltip::before {
+  bottom: 150% !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 99999 !important;
+  position: fixed !important;
+  margin-bottom: 10px !important;
+}
+
+.drag-handle.tooltip::after {
+  bottom: 150% !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 99999 !important;
+  position: fixed !important;
+  margin-bottom: 6px !important;
+}
+
+/* 头部按钮的tooltip */
+.header-actions .tooltip::before {
+  bottom: 150% !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 99999 !important;
+  position: fixed !important;
+  margin-bottom: 10px !important;
+}
+
+.header-actions .tooltip::after {
+  bottom: 150% !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 99999 !important;
+  position: fixed !important;
+  margin-bottom: 6px !important;
+}
+
+/* 标签页操作按钮的tooltip */
+.tab-actions .tooltip::before {
+  bottom: 150% !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 99999 !important;
+  position: fixed !important;
+  margin-bottom: 10px !important;
+}
+
+.tab-actions .tooltip::after {
+  bottom: 150% !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 99999 !important;
+  position: fixed !important;
+  margin-bottom: 6px !important;
+}
+
+/* 快照删除按钮的tooltip */
+.snapshot-delete-btn.tooltip::before {
+  bottom: 150% !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 99999 !important;
+  position: fixed !important;
+  margin-bottom: 10px !important;
+}
+
+.snapshot-delete-btn.tooltip::after {
+  bottom: 150% !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 99999 !important;
+  position: fixed !important;
+  margin-bottom: 6px !important;
 }
 
 /* 为不同位置的tooltip调整方向 */
