@@ -65,6 +65,7 @@ export const useTabStore = defineStore('tabs', () => {
     await loadStagingTabs()
     await loadGroupRules()
     await autoGroupTabs()
+    await syncTabStates() // 同步标签页状态
     startDormancyMonitor()
   }
 
@@ -78,9 +79,13 @@ export const useTabStore = defineStore('tabs', () => {
       
       allTabs.value = tabs.map(tab => {
         const savedState = savedStates[tab.id] || {}
+        
+        // 检查标签页是否已经被Chrome休眠
+        const isActuallyDormant = tab.discarded || false
+        
         return {
           ...tab,
-          dormant: savedState.dormant || false,
+          dormant: savedState.dormant || isActuallyDormant,
           lastActive: savedState.lastActive || Date.now()
         }
       })
@@ -310,9 +315,31 @@ export const useTabStore = defineStore('tabs', () => {
         tab.dormant = false
         tab.lastActive = Date.now()
       } else {
-        // 休眠标签页
-        await chrome.tabs.discard(tabId)
-        tab.dormant = true
+        // 休眠标签页前先检查标签页状态
+        try {
+          const tabInfo = await chrome.tabs.get(tabId)
+          
+          // 检查标签页是否可以休眠
+          if (tabInfo.discarded) {
+            console.log(`标签页 ${tabId} 已经是休眠状态`)
+            return
+          }
+          
+          // 检查是否是特殊页面（如chrome://页面）
+          if (tabInfo.url && (tabInfo.url.startsWith('chrome://') || tabInfo.url.startsWith('chrome-extension://'))) {
+            console.log(`标签页 ${tabId} 是特殊页面，无法休眠`)
+            return
+          }
+          
+          // 尝试休眠标签页
+          await chrome.tabs.discard(tabId)
+          tab.dormant = true
+          console.log(`标签页 ${tabId} 休眠成功`)
+        } catch (discardError) {
+          console.warn(`无法休眠标签页 ${tabId}:`, discardError.message)
+          // 休眠失败时，不更新状态，保持原状态
+          return
+        }
       }
       
       // 保存状态变化
@@ -377,7 +404,11 @@ export const useTabStore = defineStore('tabs', () => {
 
       for (const tab of allTabs.value) {
         if (!tab.dormant && (now - tab.lastActive) > thirtyMinutes) {
-          await toggleTabDormant(tab.id)
+          try {
+            await toggleTabDormant(tab.id)
+          } catch (error) {
+            console.warn(`自动休眠标签页 ${tab.id} 失败:`, error.message)
+          }
         }
       }
     }, 5 * 60 * 1000)
@@ -391,6 +422,28 @@ export const useTabStore = defineStore('tabs', () => {
       await chrome.storage.local.set({ tabStates: savedStates })
     } catch (error) {
       console.error('清理标签页状态失败:', error)
+    }
+  }
+
+  const syncTabStates = async () => {
+    try {
+      const tabs = await chrome.tabs.query({})
+      const result = await chrome.storage.local.get(['tabStates'])
+      const savedStates = result.tabStates || {}
+      
+      // 更新标签页状态以匹配实际状态
+      allTabs.value.forEach(tab => {
+        const actualTab = tabs.find(t => t.id === tab.id)
+        if (actualTab) {
+          tab.discarded = actualTab.discarded
+          tab.dormant = actualTab.discarded || savedStates[tab.id]?.dormant || false
+        }
+      })
+      
+      // 保存同步后的状态
+      await saveTabStates()
+    } catch (error) {
+      console.error('同步标签页状态失败:', error)
     }
   }
 
@@ -422,6 +475,7 @@ export const useTabStore = defineStore('tabs', () => {
     restoreFromStaging,
     clearStaging,
     moveTabToGroup,
-    cleanupTabState
+    cleanupTabState,
+    syncTabStates
   }
 })
