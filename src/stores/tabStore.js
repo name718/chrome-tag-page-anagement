@@ -71,11 +71,19 @@ export const useTabStore = defineStore('tabs', () => {
   const loadTabs = async () => {
     try {
       const tabs = await chrome.tabs.query({})
-      allTabs.value = tabs.map(tab => ({
-        ...tab,
-        dormant: false,
-        lastActive: Date.now()
-      }))
+      
+      // 加载保存的标签页状态
+      const result = await chrome.storage.local.get(['tabStates'])
+      const savedStates = result.tabStates || {}
+      
+      allTabs.value = tabs.map(tab => {
+        const savedState = savedStates[tab.id] || {}
+        return {
+          ...tab,
+          dormant: savedState.dormant || false,
+          lastActive: savedState.lastActive || Date.now()
+        }
+      })
     } catch (error) {
       console.error('加载标签页失败:', error)
     }
@@ -121,6 +129,21 @@ export const useTabStore = defineStore('tabs', () => {
       await chrome.storage.local.set({ stagingTabs: stagingTabs.value })
     } catch (error) {
       console.error('保存暂存区失败:', error)
+    }
+  }
+
+  const saveTabStates = async () => {
+    try {
+      const tabStates = {}
+      allTabs.value.forEach(tab => {
+        tabStates[tab.id] = {
+          dormant: tab.dormant,
+          lastActive: tab.lastActive
+        }
+      })
+      await chrome.storage.local.set({ tabStates })
+    } catch (error) {
+      console.error('保存标签页状态失败:', error)
     }
   }
 
@@ -269,6 +292,7 @@ export const useTabStore = defineStore('tabs', () => {
       if (tab) {
         tab.lastActive = Date.now()
         tab.dormant = false
+        await saveTabStates()
       }
     } catch (error) {
       console.error('激活标签页失败:', error)
@@ -290,6 +314,9 @@ export const useTabStore = defineStore('tabs', () => {
         await chrome.tabs.discard(tabId)
         tab.dormant = true
       }
+      
+      // 保存状态变化
+      await saveTabStates()
     } catch (error) {
       console.error('切换标签页休眠状态失败:', error)
     }
@@ -356,6 +383,17 @@ export const useTabStore = defineStore('tabs', () => {
     }, 5 * 60 * 1000)
   }
 
+  const cleanupTabState = async (tabId) => {
+    try {
+      const result = await chrome.storage.local.get(['tabStates'])
+      const savedStates = result.tabStates || {}
+      delete savedStates[tabId]
+      await chrome.storage.local.set({ tabStates: savedStates })
+    } catch (error) {
+      console.error('清理标签页状态失败:', error)
+    }
+  }
+
   return {
     // 状态
     groups,
@@ -383,6 +421,7 @@ export const useTabStore = defineStore('tabs', () => {
     moveToStaging,
     restoreFromStaging,
     clearStaging,
-    moveTabToGroup
+    moveTabToGroup,
+    cleanupTabState
   }
 })

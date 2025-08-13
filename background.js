@@ -55,6 +55,16 @@ async function updateTabActivity(tabId) {
     tabActivity[tabId] = Date.now()
     
     await chrome.storage.local.set({ tabActivity })
+    
+    // 同时更新标签页状态
+    const stateResult = await chrome.storage.local.get(['tabStates'])
+    const tabStates = stateResult.tabStates || {}
+    tabStates[tabId] = {
+      ...tabStates[tabId],
+      dormant: false,
+      lastActive: Date.now()
+    }
+    await chrome.storage.local.set({ tabStates })
   } catch (error) {
     console.error('更新标签页活跃时间失败:', error)
   }
@@ -86,6 +96,13 @@ async function cleanupTabData(tabId) {
     delete tabActivity[tabId]
     
     await chrome.storage.local.set({ tabActivity })
+    
+    // 清理标签页状态
+    const stateResult = await chrome.storage.local.get(['tabStates'])
+    const tabStates = stateResult.tabStates || {}
+    delete tabStates[tabId]
+    
+    await chrome.storage.local.set({ tabStates })
   } catch (error) {
     console.error('清理标签页数据失败:', error)
   }
@@ -132,6 +149,17 @@ setInterval(async () => {
     for (const tabId of expiredTabs) {
       try {
         await chrome.tabs.discard(tabId)
+        
+        // 更新标签页状态
+        const stateResult = await chrome.storage.local.get(['tabStates'])
+        const tabStates = stateResult.tabStates || {}
+        tabStates[tabId] = {
+          ...tabStates[tabId],
+          dormant: true,
+          lastActive: tabStates[tabId]?.lastActive || Date.now()
+        }
+        await chrome.storage.local.set({ tabStates })
+        
         console.log(`标签页 ${tabId} 已休眠`)
       } catch (error) {
         console.log(`标签页 ${tabId} 休眠失败:`, error)
