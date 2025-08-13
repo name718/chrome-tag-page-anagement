@@ -10,7 +10,8 @@ export const useTabStore = defineStore('tabs', () => {
 
   // 计算属性
   const totalTabs = computed(() => {
-    return groups.value.reduce((total, group) => total + group.tabs.length, 0)
+    const list = Array.isArray(groups.value) ? groups.value : []
+    return list.reduce((total, group) => total + (Array.isArray(group?.tabs) ? group.tabs.length : 0), 0)
   })
 
   const dormantTabs = computed(() => {
@@ -97,7 +98,19 @@ export const useTabStore = defineStore('tabs', () => {
   const loadGroups = async () => {
     try {
       const result = await chrome.storage.local.get(['tabGroups'])
-      groups.value = result.tabGroups || []
+      const raw = result.tabGroups
+      if (Array.isArray(raw)) {
+        groups.value = raw
+      } else if (raw && typeof raw === 'object') {
+        groups.value = Object.values(raw)
+      } else {
+        groups.value = []
+      }
+      // 兜底 tabs 字段
+      groups.value = groups.value.map(g => ({
+        ...g,
+        tabs: Array.isArray(g?.tabs) ? g.tabs : []
+      }))
     } catch (error) {
       console.error('加载分组失败:', error)
     }

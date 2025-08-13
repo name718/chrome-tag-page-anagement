@@ -75,17 +75,17 @@ async function cleanupTabData(tabId) {
   try {
     // 从分组中移除
     const result = await chrome.storage.local.get(['tabGroups'])
-    const groups = result.tabGroups || []
-    
+    const raw = result.tabGroups
+    let groups = Array.isArray(raw) ? raw : (raw && typeof raw === 'object' ? Object.values(raw) : [])
+    groups = groups.map(g => ({ ...g, tabs: Array.isArray(g?.tabs) ? g.tabs : [] }))
     groups.forEach(group => {
       group.tabs = group.tabs.filter(tab => tab.id !== tabId)
     })
-    
     await chrome.storage.local.set({ tabGroups: groups })
     
     // 从暂存区移除
     const stagingResult = await chrome.storage.local.get(['stagingTabs'])
-    const stagingTabs = stagingResult.stagingTabs || []
+    const stagingTabs = Array.isArray(stagingResult.stagingTabs) ? stagingResult.stagingTabs : []
     const filteredStagingTabs = stagingTabs.filter(tab => tab.id !== tabId)
     
     await chrome.storage.local.set({ stagingTabs: filteredStagingTabs })
@@ -113,11 +113,12 @@ async function cleanupWindowData(windowId) {
   try {
     // 清理快照中的窗口数据
     const result = await chrome.storage.local.get(['snapshots'])
-    const snapshots = result.snapshots || []
+    const snapshots = Array.isArray(result.snapshots) ? result.snapshots : []
     
     snapshots.forEach(snapshot => {
-      if (snapshot.data && snapshot.data.windows) {
-        snapshot.data.windows = snapshot.data.windows.filter(window => window.id !== windowId)
+      if (snapshot?.data?.windows) {
+        const windows = Array.isArray(snapshot.data.windows) ? snapshot.data.windows : []
+        snapshot.data.windows = windows.filter(window => window.id !== windowId)
       }
     })
     
@@ -172,6 +173,7 @@ setInterval(async () => {
 
 // 监听来自popup的消息
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  console.log('[bg] onMessage action:', request?.action)
   switch (request.action) {
     case 'getTabGroups':
       chrome.storage.local.get(['tabGroups'], (result) => {
@@ -210,17 +212,21 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       return true
       
     case 'createSnapshot':
+      console.log('[bg] createSnapshot name:', request?.name)
       createSnapshot(request.name).then(snapshot => {
         sendResponse({ success: true, snapshot })
       }).catch(error => {
+        console.error('[bg] createSnapshot error:', error)
         sendResponse({ success: false, error: error.message })
       })
       return true
       
     case 'restoreSnapshot':
-      restoreSnapshot(request.snapshotId).then(() => {
+      console.log('[bg] restoreSnapshot id:', request?.snapshotId)
+      restoreSnapshot(request.snapshotId, request.snapshot || null).then(() => {
         sendResponse({ success: true })
       }).catch(error => {
+        console.error('[bg] restoreSnapshot error:', error)
         sendResponse({ success: false, error: error.message })
       })
       return true
@@ -230,34 +236,107 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 })
 
+// 工具：判断URL是否可恢复
+function isRestorableUrl(url) {
+  return !!url && url !== 'about:blank' && !url.startsWith('chrome://') && !url.startsWith('chrome-extension://')
+}
+
+// 工具：等待tab的URL被设置（避免立即discard导致about:blank）
+function waitForTabUrl(tabId, expectedUrl, timeoutMs = 2000) {
+  return new Promise((resolve) => {
+    let done = false
+    const cleanup = () => {
+      if (!done) {
+        chrome.tabs.onUpdated.removeListener(handler)
+        done = true
+      }
+    }
+    const handler = (id, changeInfo, tab) => {
+      if (id === tabId && changeInfo && changeInfo.url) {
+        resolve(changeInfo.url)
+        cleanup()
+      }
+    }
+    try {
+      chrome.tabs.onUpdated.addListener(handler)
+    } catch {}
+    setTimeout(async () => {
+      if (done) return
+      try {
+        const tab = await chrome.tabs.get(tabId)
+        resolve(tab?.url || null)
+      } catch {
+        resolve(null)
+      } finally {
+        cleanup()
+      }
+    }, timeoutMs)
+  })
+}
+
 // 创建快照
 async function createSnapshot(name) {
   try {
-    const windows = await chrome.windows.getAll({ populate: true })
+    console.log('[bg] createSnapshot start, name:', name)
+    let windows = await chrome.windows.getAll({ populate: true })
+    console.log('[bg] windows length:', windows?.length)
+    let windowsForSnapshot = []
+    if (Array.isArray(windows) && windows.length > 0) {
+      windowsForSnapshot = windows.map(window => ({
+        id: window.id,
+        state: window.state,
+        top: window.top,
+        left: window.left,
+        width: window.width,
+        height: window.height,
+        tabs: (Array.isArray(window.tabs) ? window.tabs : []).map(tab => ({
+          id: tab.id,
+          url: tab.url,
+          title: tab.title,
+          active: tab.active,
+          pinned: tab.pinned,
+          index: tab.index
+        }))
+      }))
+    } else {
+      // 回退：用 tabs.query 构造窗口数据
+      const tabs = await chrome.tabs.query({})
+      console.log('[bg] fallback tabs length:', tabs?.length)
+      const map = {}
+      for (const tab of tabs) {
+        const wid = tab.windowId
+        if (!map[wid]) {
+          map[wid] = {
+            id: wid,
+            state: 'normal',
+            top: undefined,
+            left: undefined,
+            width: undefined,
+            height: undefined,
+            tabs: []
+          }
+        }
+        map[wid].tabs.push({
+          id: tab.id,
+          url: tab.url,
+          title: tab.title,
+          active: tab.active,
+          pinned: tab.pinned,
+          index: tab.index
+        })
+      }
+      windowsForSnapshot = Object.values(map)
+    }
     
     const snapshot = {
       id: `snapshot_${Date.now()}`,
       name,
       createdAt: Date.now(),
-      data: {
-        windows: windows.map(window => ({
-          id: window.id,
-          state: window.state,
-          bounds: window.bounds,
-          tabs: window.tabs.map(tab => ({
-            id: tab.id,
-            url: tab.url,
-            title: tab.title,
-            active: tab.active,
-            pinned: tab.pinned,
-            index: tab.index
-          }))
-        }))
-      }
+      data: { windows: windowsForSnapshot }
     }
     
     const result = await chrome.storage.local.get(['snapshots'])
-    const snapshots = result.snapshots || []
+    const snapshots = Array.isArray(result.snapshots) ? result.snapshots : []
     snapshots.unshift(snapshot)
     
     // 限制快照数量
@@ -266,59 +345,56 @@ async function createSnapshot(name) {
     }
     
     await chrome.storage.local.set({ snapshots })
+    console.log('[bg] snapshot saved, total:', snapshots.length)
     return snapshot
   } catch (error) {
-    console.error('创建快照失败:', error)
+    console.error('[bg] 创建快照失败:', error)
     throw error
   }
 }
 
 // 恢复快照
-async function restoreSnapshot(snapshotId) {
+async function restoreSnapshot(snapshotId, snapshotFromPayload = null) {
   try {
-    const result = await chrome.storage.local.get(['snapshots'])
-    const snapshots = result.snapshots || []
-    const snapshot = snapshots.find(s => s.id === snapshotId)
+    console.log('[bg] restoreSnapshot start, id:', snapshotId)
+    let snapshot = snapshotFromPayload
+    if (!snapshot) {
+      const result = await chrome.storage.local.get(['snapshots'])
+      const snapshots = Array.isArray(result.snapshots) ? result.snapshots : []
+      snapshot = snapshots.find(s => s.id === snapshotId)
+    }
     
     if (!snapshot) {
+      console.warn('[bg] snapshot not found')
       throw new Error('快照不存在')
     }
     
-    // 关闭所有现有窗口
-    const existingWindows = await chrome.windows.getAll()
-    for (const window of existingWindows) {
-      await chrome.windows.remove(window.id)
-    }
-    
-    // 恢复快照中的窗口和标签页
-    for (const windowData of snapshot.data.windows) {
-      const newWindow = await chrome.windows.create({
-        state: windowData.state,
-        bounds: windowData.bounds
-      })
-      
-      for (let i = 0; i < windowData.tabs.length; i++) {
-        const tabData = windowData.tabs[i]
-        
-        if (i === 0) {
-          await chrome.tabs.update(newWindow.tabs[0].id, {
-            url: tabData.url,
-            active: tabData.active,
-            pinned: tabData.pinned
-          })
-        } else {
-          await chrome.tabs.create({
-            windowId: newWindow.id,
-            url: tabData.url,
-            active: tabData.active,
-            pinned: tabData.pinned,
-            index: tabData.index
-          })
-        }
+    const windows = Array.isArray(snapshot?.data?.windows) ? snapshot.data.windows : []
+    console.log('[bg] windows to restore:', windows.length)
+    // 改为在“当前窗口”恢复，不新开窗口，避免重复窗口
+    const currentWindow = await chrome.windows.getCurrent({ populate: true })
+    const snapshotTabs = windows.flatMap(w => Array.isArray(w?.tabs) ? w.tabs : [])
+      .filter(t => isRestorableUrl(t?.url))
+    console.log('[bg] tabs to restore in current window:', snapshotTabs.length)
+    if (snapshotTabs.length === 0) return
+    // 第一个标签：新开标签并切换过去，不替换当前标签
+    const first = snapshotTabs[0]
+    const createdFirst = await chrome.tabs.create({ windowId: currentWindow.id, url: first.url, active: true, pinned: !!first.pinned })
+    await waitForTabUrl(createdFirst.id, first.url, 1500)
+    // 后续标签依次创建为非激活，并立即丢弃，避免立刻网络风暴
+    for (let i = 1; i < snapshotTabs.length; i++) {
+      const t = snapshotTabs[i]
+      try {
+        const created = await chrome.tabs.create({ windowId: currentWindow.id, url: t.url, active: false, pinned: !!t.pinned })
+        await waitForTabUrl(created.id, t.url, 1500)
+        try { await chrome.tabs.discard(created.id) } catch {}
+      } catch (e) {
+        console.warn('[bg] create tab failed:', t.url, e?.message || e)
       }
     }
+    console.log('[bg] restoreSnapshot finished')
   } catch (error) {
-    console.error('恢复快照失败:', error)
+    console.error('[bg] 恢复快照失败:', error)
     throw error
   }
 }

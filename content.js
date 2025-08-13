@@ -46,11 +46,23 @@ function highlightElement(selector) {
   }
 }
 
+// 安全发送消息（避免 Extension context invalidated 报错）
+function safeSendMessage(payload) {
+  try {
+    if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id) {
+      chrome.runtime.sendMessage(payload)
+    }
+  } catch (e) {
+    // 扩展更新/上下文失效时会报错，忽略即可，刷新页面后会恢复
+    // console.warn('[content] sendMessage ignored:', e?.message || e)
+  }
+}
+
 // 页面加载完成后发送页面信息
 document.addEventListener('DOMContentLoaded', () => {
   // 延迟发送，确保页面完全加载
   setTimeout(() => {
-    chrome.runtime.sendMessage({
+    safeSendMessage({
       action: 'pageLoaded',
       data: {
         title: document.title,
@@ -65,7 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // 监听页面可见性变化
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') {
-    chrome.runtime.sendMessage({
+    safeSendMessage({
       action: 'pageVisible',
       data: {
         url: window.location.href,
@@ -77,7 +89,7 @@ document.addEventListener('visibilitychange', () => {
 
 // 监听页面卸载
 window.addEventListener('beforeunload', () => {
-  chrome.runtime.sendMessage({
+  safeSendMessage({
     action: 'pageUnload',
     data: {
       url: window.location.href,

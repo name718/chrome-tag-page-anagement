@@ -340,14 +340,58 @@ const clearStaging = () => {
 
 const createSnapshot = async () => {
   const name = prompt('请输入快照名称:')
-  if (name) {
-    await snapshotStore.createSnapshot(name)
+  if (!name) return
+  try {
+    console.log('[UI] sending message to background.createSnapshot, name:', name)
+    const resp = await new Promise((resolve) => {
+      try {
+        chrome.runtime.sendMessage({ action: 'createSnapshot', name }, (res) => {
+          resolve(res)
+        })
+      } catch (err) {
+        console.error('[UI] sendMessage error:', err)
+        resolve({ success: false, error: err?.message || String(err) })
+      }
+    })
+    console.log('[UI] background response (createSnapshot):', resp)
+    if (!resp || !resp.success) {
+      console.warn('[UI] bg createSnapshot failed, fallback to store.createSnapshot:', resp?.error)
+      await snapshotStore.createSnapshot(name)
+    }
+    // 刷新本地快照列表
+    await snapshotStore.initialize()
+  } catch (e) {
+    console.error('[UI] createSnapshot error:', e)
+    alert('创建快照失败：' + (e?.message || e))
   }
 }
 
-const restoreSnapshot = (snapshotId) => {
-  if (confirm('确定要恢复这个工作区快照吗？')) {
-    snapshotStore.restoreSnapshot(snapshotId)
+const restoreSnapshot = async (snapshotId) => {
+  console.log('[UI] restoreSnapshot click:', snapshotId)
+  if (!confirm('确定要恢复这个工作区快照吗？')) return
+  try {
+    console.log('[UI] sending message to background.restoreSnapshot')
+    const snapshotObj = snapshots.value.find(s => s.id === snapshotId)
+    console.log('[UI] found snapshot in UI store:', !!snapshotObj)
+    const resp = await new Promise((resolve) => {
+      try {
+        chrome.runtime.sendMessage({ action: 'restoreSnapshot', snapshotId, snapshot: snapshotObj }, (res) => {
+          resolve(res)
+        })
+      } catch (err) {
+        console.error('[UI] sendMessage error:', err)
+        resolve({ success: false, error: err?.message || String(err) })
+      }
+    })
+    console.log('[UI] background response:', resp)
+    if (!resp || !resp.success) {
+      console.warn('[UI] bg restore failed, fallback to store.restoreSnapshot:', resp?.error)
+      await snapshotStore.restoreSnapshot(snapshotId)
+    }
+    console.log('[UI] restoreSnapshot completed')
+  } catch (e) {
+    console.error('[UI] restoreSnapshot error:', e)
+    alert('恢复快照失败：' + (e?.message || e))
   }
 }
 
