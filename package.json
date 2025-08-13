@@ -11,16 +11,17 @@
     "copy-manifest": "cp manifest.json dist/ && cp background.js dist/ && cp content.js dist/ && mkdir -p dist/icons && cp icons/* dist/icons/ && cp dist/src/popup.html dist/ && cp dist/src/options.html dist/"
   },
   "dependencies": {
+    "@vueuse/core": "^10.3.0",
+    "pinia": "^2.1.6",
     "vue": "^3.3.4",
     "vue-router": "^4.2.4",
-    "pinia": "^2.1.6",
-    "@vueuse/core": "^10.3.0"
+    "vuedraggable": "^4.1.0"
   },
   "devDependencies": {
+    "@types/chrome": "^0.0.242",
     "@vitejs/plugin-vue": "^4.3.4",
-    "vite": "^4.4.9",
     "typescript": "^5.1.6",
-    "@types/chrome": "^0.0.242"
+    "vite": "^4.4.9"
   },
   "keywords": [
     "chrome-extension",

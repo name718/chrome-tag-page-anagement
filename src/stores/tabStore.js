@@ -659,6 +659,38 @@ export const useTabStore = defineStore('tabs', () => {
     }
   }
 
+  // 分组排序相关方法
+  const moveGroup = async (groupId, newIndex) => {
+    const currentIndex = groups.value.findIndex(g => g.id === groupId)
+    if (currentIndex === -1 || currentIndex === newIndex) return
+    
+    const group = groups.value.splice(currentIndex, 1)[0]
+    groups.value.splice(newIndex, 0, group)
+    
+    await saveGroups()
+  }
+
+  const reorderGroups = async (newOrder) => {
+    // newOrder 是一个包含分组ID的数组，按新顺序排列
+    const orderedGroups = []
+    for (const groupId of newOrder) {
+      const group = groups.value.find(g => g.id === groupId)
+      if (group) {
+        orderedGroups.push(group)
+      }
+    }
+    
+    // 添加任何未在newOrder中的分组（可能是新创建的）
+    for (const group of groups.value) {
+      if (!newOrder.includes(group.id)) {
+        orderedGroups.push(group)
+      }
+    }
+    
+    groups.value = orderedGroups
+    await saveGroups()
+  }
+
   return {
     // 状态
     groups,
@@ -692,6 +724,9 @@ export const useTabStore = defineStore('tabs', () => {
     clearStaging,
     moveTabToGroup,
     cleanupTabState,
-    syncTabStates
+    syncTabStates,
+    moveGroup,
+    reorderGroups,
+    saveGroups
   }
 })

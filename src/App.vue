@@ -101,6 +101,7 @@
                   <div class="cell"><div class="num">{{ totalTabs }}</div><div class="lbl">总数</div></div>
                   <div class="cell"><div class="num ok">{{ activeTabs }}</div><div class="lbl">活跃</div></div>
                   <div class="cell"><div class="num muted">{{ dormantTabs }}</div><div class="lbl">休眠</div></div>
+
                 </div>
               </div>
               <div class="metric">
@@ -126,13 +127,17 @@
         <div v-if="tabGroups.length === 0" class="no-groups">
           <p>暂无分组，请选择分组策略或等待自动分组</p>
         </div>
+
         <div 
-          v-for="group in tabGroups" 
+          v-for="(group, index) in tabGroups" 
           :key="group.id" 
           class="tab-group"
           :class="{ 'is-collapsed': group.collapsed }"
+          @dragover="onGroupDragOver($event, index)"
+          @dragleave="onGroupDragLeave($event)"
+          @drop="onGroupDrop($event, index)"
         >
-          <div class="group-header" @click="toggleGroup(group.id)">
+          <div class="group-header" @click="handleGroupHeaderClick($event, group.id)" title="点击折叠/展开">
             <div class="group-info">
               <div class="group-icon-wrapper">
                 <span class="group-icon">{{ group.icon }}</span>
@@ -143,6 +148,17 @@
               </div>
             </div>
             <div class="group-actions">
+              <div 
+                class="drag-handle tooltip" 
+                data-tooltip="拖拽排序分组"
+                draggable="true"
+                @dragstart="onGroupDragStart($event, group, index)"
+                @dragend="onGroupDragEnd($event)"
+              >
+                <svg viewBox="0 0 24 24" fill="currentColor" class="drag-icon">
+                  <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+                </svg>
+              </div>
               <button @click.stop="editGroup(group.id)" class="group-action-btn edit-btn tooltip" data-tooltip="编辑分组">
                 <svg viewBox="0 0 24 24" fill="currentColor" class="action-icon">
                   <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
@@ -384,6 +400,15 @@ const toggleGroup = (groupId) => {
   tabStore.toggleGroupCollapse(groupId)
 }
 
+const handleGroupHeaderClick = (event, groupId) => {
+  // 如果是从拖拽开始的点击，不触发折叠/展开
+  const groupElement = event.target.closest('.tab-group')
+  if (groupElement && groupElement.classList.contains('dragging')) {
+    return
+  }
+  toggleGroup(groupId)
+}
+
 const editGroup = (groupId) => {
   const group = tabStore.groups.find(g => g.id === groupId)
   if (group) {
@@ -564,13 +589,178 @@ const onDragStart = (event, tab) => {
       event.preventDefault()
       return
     }
-    const tabData = JSON.stringify(tab)
+    // 只保存必要的标签页信息，避免序列化复杂对象
+    const tabData = { 
+      type: 'tab',
+      id: tab.id,
+      title: tab.title,
+      url: tab.url,
+      favIconUrl: tab.favIconUrl
+    }
+    
+    // 设置多种数据格式以确保兼容性
+    event.dataTransfer.setData('text/plain', JSON.stringify(tabData))
+    event.dataTransfer.setData('application/json', JSON.stringify(tabData))
+    
     console.log('设置拖拽数据:', tabData)
-    event.dataTransfer.setData('text/plain', tabData)
     event.dataTransfer.effectAllowed = 'move'
   } catch (error) {
     console.error('设置拖拽数据失败:', error)
     event.preventDefault()
+  }
+}
+
+// 分组拖拽功能
+const onGroupDragStart = (event, group, index) => {
+  try {
+    if (!group || !group.id) {
+      console.warn('无效的分组数据:', group)
+      event.preventDefault()
+      return
+    }
+    // 只保存必要的分组信息，避免序列化复杂对象
+    const groupData = { 
+      type: 'group', 
+      groupId: group.id,
+      groupName: group.name,
+      index 
+    }
+    
+    // 设置多种数据格式以确保兼容性
+    event.dataTransfer.setData('text/plain', JSON.stringify(groupData))
+    event.dataTransfer.setData('application/json', JSON.stringify(groupData))
+    
+    console.log('设置分组拖拽数据:', groupData)
+    event.dataTransfer.effectAllowed = 'move'
+    
+    // 添加拖拽样式到整个分组和拖拽手柄
+    const groupElement = event.target.closest('.tab-group')
+    const dragHandle = event.target.closest('.drag-handle')
+    if (groupElement) {
+      groupElement.classList.add('dragging')
+    }
+    if (dragHandle) {
+      dragHandle.classList.add('dragging')
+    }
+  } catch (error) {
+    console.error('设置分组拖拽数据失败:', error)
+    event.preventDefault()
+  }
+}
+
+const onGroupDragEnd = (event) => {
+  // 清理所有拖拽样式
+  document.querySelectorAll('.tab-group.dragging').forEach(el => {
+    el.classList.remove('dragging')
+  })
+  document.querySelectorAll('.drag-handle.dragging').forEach(el => {
+    el.classList.remove('dragging')
+  })
+  document.querySelectorAll('.tab-group.drag-over').forEach(el => {
+    el.classList.remove('drag-over')
+  })
+}
+
+const onGroupDragOver = (event, index) => {
+  event.preventDefault()
+  event.dataTransfer.dropEffect = 'move'
+  
+  // 添加拖拽悬停效果到整个分组
+  const groupElement = event.target.closest('.tab-group')
+  if (groupElement) {
+    groupElement.classList.add('drag-over')
+  }
+}
+
+const onGroupDragLeave = (event) => {
+  // 移除拖拽悬停效果
+  const groupElement = event.target.closest('.tab-group')
+  if (groupElement) {
+    groupElement.classList.remove('drag-over')
+  }
+}
+
+const onGroupDrop = async (event, dropIndex) => {
+  event.preventDefault()
+  
+  // 移除拖拽样式
+  const groupElement = event.target.closest('.tab-group')
+  if (groupElement) {
+    groupElement.classList.remove('drag-over')
+  }
+  
+  // 移除所有拖拽样式
+  document.querySelectorAll('.tab-group.dragging').forEach(el => {
+    el.classList.remove('dragging')
+  })
+  document.querySelectorAll('.drag-handle.dragging').forEach(el => {
+    el.classList.remove('dragging')
+  })
+  
+  // 调试：检查所有可用的数据
+  console.log('=== 分组拖拽调试信息 ===')
+  console.log('可用的数据格式:', event.dataTransfer.types || [])
+  
+  // 尝试获取所有格式的数据
+  const allFormats = event.dataTransfer.types || []
+  let foundData = null
+  let foundFormat = null
+  
+  for (const format of allFormats) {
+    try {
+      const formatData = event.dataTransfer.getData(format)
+      console.log(`格式 ${format} 的数据:`, formatData, '类型:', typeof formatData)
+      
+      if (formatData && !foundData) {
+        foundData = formatData
+        foundFormat = format
+      }
+    } catch (formatError) {
+      console.warn(`无法获取格式 ${format} 的数据:`, formatError)
+    }
+  }
+  
+  if (!foundData) {
+    console.warn('没有找到任何拖拽数据')
+    return
+  }
+  
+  try {
+    let dragData = null
+    
+    // 如果数据已经是对象，直接使用
+    if (typeof foundData === 'object') {
+      console.log('数据已经是对象，直接使用:', foundData)
+      dragData = foundData
+    } else {
+      // 尝试解析JSON
+      try {
+        dragData = JSON.parse(foundData)
+        console.log('解析后的分组拖拽数据:', dragData)
+      } catch (parseError) {
+        console.warn('JSON解析失败，尝试其他方式:', parseError)
+        // 如果JSON解析失败，尝试直接使用数据
+        dragData = foundData
+      }
+    }
+    
+    // 更宽松的分组数据验证
+    if (dragData && dragData.type === 'group') {
+      const groupId = dragData.groupId || dragData.group_id || dragData.id
+      const dragIndex = dragData.index
+      
+      if (groupId && typeof dragIndex === 'number' && dragIndex !== dropIndex) {
+        console.log(`移动分组从位置 ${dragIndex} 到位置 ${dropIndex}`)
+        await tabStore.moveGroup(groupId, dropIndex)
+        return
+      }
+    }
+    
+    console.warn('拖拽数据格式无效，无法处理分组拖拽:', dragData)
+  } catch (error) {
+    console.warn('分组拖拽数据解析失败:', error)
+    console.warn('找到的数据:', foundData)
+    console.warn('数据格式:', foundFormat)
   }
 }
 
@@ -599,22 +789,87 @@ const onDrop = (event, groupId) => {
     dropzone.classList.remove('drag-over')
   }
   
+  // 调试：检查所有可用的数据
+  console.log('=== 标签页拖拽调试信息 ===')
+  console.log('可用的数据格式:', event.dataTransfer.types || [])
+  
+  // 尝试获取所有格式的数据
+  const allFormats = event.dataTransfer.types || []
+  let foundData = null
+  let foundFormat = null
+  
+  for (const format of allFormats) {
+    try {
+      const formatData = event.dataTransfer.getData(format)
+      console.log(`格式 ${format} 的数据:`, formatData, '类型:', typeof formatData)
+      
+      if (formatData && !foundData) {
+        foundData = formatData
+        foundFormat = format
+      }
+    } catch (formatError) {
+      console.warn(`无法获取格式 ${format} 的数据:`, formatError)
+    }
+  }
+  
+  if (!foundData) {
+    console.warn('没有找到任何拖拽数据')
+    return
+  }
+  
   try {
-    const data = event.dataTransfer.getData('text/plain')
-    if (!data) {
-      console.warn('拖拽数据为空')
+    let dragData = null
+    
+    // 如果数据已经是对象，直接使用
+    if (typeof foundData === 'object') {
+      console.log('数据已经是对象，直接使用:', foundData)
+      dragData = foundData
+    } else {
+      // 尝试解析JSON
+      try {
+        dragData = JSON.parse(foundData)
+        console.log('解析后的拖拽数据:', dragData)
+      } catch (parseError) {
+        console.warn('JSON解析失败，尝试其他方式:', parseError)
+        // 如果JSON解析失败，尝试直接使用数据
+        dragData = foundData
+      }
+    }
+    
+    console.log('拖拽数据类型:', dragData?.type, '数据:', dragData)
+    
+    // 检查是否是分组拖拽
+    if (dragData && dragData.type === 'group') {
+      console.log('检测到分组拖拽，忽略标签页拖拽处理')
       return
     }
     
-    const tabData = JSON.parse(data)
-    if (tabData && tabData.id) {
-      tabStore.moveTabToGroup(tabData.id, groupId)
-    } else {
-      console.warn('拖拽数据格式无效:', tabData)
+    // 处理标签页拖拽 - 更宽松的验证
+    if (dragData && dragData.id) {
+      // 检查是否有必要的标签页属性
+      if (dragData.title || dragData.url) {
+        console.log('移动标签页到分组:', dragData.id, '->', groupId)
+        tabStore.moveTabToGroup(dragData.id, groupId)
+        return
+      }
     }
+    
+    // 如果上面的验证都失败，尝试从其他属性推断
+    if (dragData && typeof dragData === 'object') {
+      // 查找可能的标签页ID
+      const possibleId = dragData.id || dragData.tabId || dragData.tab_id
+      if (possibleId) {
+        console.log('从其他属性推断标签页ID:', possibleId, '->', groupId)
+        tabStore.moveTabToGroup(possibleId, groupId)
+        return
+      }
+    }
+    
+    console.warn('拖拽数据格式无效，无法处理:', dragData)
   } catch (error) {
     console.warn('拖拽数据解析失败:', error)
-    console.warn('原始数据:', event.dataTransfer.getData('text/plain'))
+    console.warn('找到的数据:', foundData)
+    console.warn('数据格式:', foundFormat)
   }
 }
 
@@ -816,6 +1071,8 @@ onMounted(async () => {
   margin-bottom: 20px;
 }
 
+
+
 .tab-group {
   background: #ffffff;
   border-radius: 8px;
@@ -823,8 +1080,60 @@ onMounted(async () => {
   overflow: hidden;
   margin-bottom: 12px;
   border: 1px solid #e9ecef;
-  transition: background-color 0.2s ease;
+  transition: all 0.2s ease;
+  cursor: grab;
 }
+
+.tab-group:active {
+  cursor: grabbing;
+}
+
+.drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  cursor: grab;
+  color: #6c757d;
+  border-radius: 3px;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.drag-handle:hover {
+  background: #e9ecef;
+  color: #495057;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.drag-handle.dragging {
+  cursor: grabbing;
+}
+
+.drag-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.tab-group.dragging {
+  opacity: 0.5;
+  transform: rotate(2deg);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+}
+
+.tab-group.drag-over {
+  border-color: #4f46e5;
+  background: #f8f9ff;
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+}
+
+
 
 .tab-group:hover { background: #fff; }
 
@@ -891,7 +1200,12 @@ onMounted(async () => {
 .group-actions {
   display: flex;
   gap: 4px;
+  align-items: center;
 }
+
+
+
+
 
 .group-tabs {
   max-height: 400px;
@@ -1854,6 +2168,8 @@ onMounted(async () => {
 .group-dropzone.drag-over .dropzone-text {
   color: #28a745;
 }
+
+
 
 /* 快照删除按钮样式 */
 .snapshot-delete-btn {
