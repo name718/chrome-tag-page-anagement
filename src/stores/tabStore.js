@@ -10,8 +10,12 @@ export const useTabStore = defineStore('tabs', () => {
 
   // 计算属性
   const totalTabs = computed(() => {
-    const list = Array.isArray(groups.value) ? groups.value : []
-    return list.reduce((total, group) => total + (Array.isArray(group?.tabs) ? group.tabs.length : 0), 0)
+    // 以系统实际打开的标签(allTabs)为准，避免分组重复统计同一标签
+    const list = Array.isArray(allTabs.value) ? allTabs.value : []
+    // allTabs 来源于 chrome.tabs.query，ID 已唯一；但这里仍做一次去重以防外部注入
+    const unique = new Set()
+    list.forEach(tab => { if (tab && typeof tab.id !== 'undefined') unique.add(tab.id) })
+    return unique.size
   })
 
   const dormantTabs = computed(() => {

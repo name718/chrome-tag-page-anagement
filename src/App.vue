@@ -35,8 +35,8 @@
     <!-- 统计仪表板 -->
     <div class="stats-section">
       <div class="stats-container">
-        <!-- 内存使用卡片 -->
-        <div class="stat-card memory-card">
+        <!-- 概览卡片（紧凑型） -->
+        <div class="stat-card overview-card">
           <div class="stat-header">
             <div class="stat-icon-wrapper">
               <svg viewBox="0 0 24 24" fill="currentColor" class="stat-icon-svg">
@@ -44,101 +44,50 @@
               </svg>
             </div>
             <div class="stat-title-group">
-              <h3 class="stat-title">内存效率</h3>
-              <p class="stat-subtitle">当前使用情况</p>
+              <h3 class="stat-title">概览</h3>
+              <p class="stat-subtitle">内存与标签/分组</p>
             </div>
           </div>
-          <div class="stat-content">
-            <div class="memory-gauge">
-              <div class="gauge-container">
-                <svg class="gauge-svg" viewBox="0 0 120 120">
-                  <defs>
-                    <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" style="stop-color:#667eea"/>
-                      <stop offset="100%" style="stop-color:#764ba2"/>
-                    </linearGradient>
-                  </defs>
-                  <circle class="gauge-background" cx="60" cy="60" r="50" />
-                  <circle 
-                    class="gauge-progress" 
-                    cx="60" 
-                    cy="60" 
-                    r="50"
-                    :stroke-dasharray="`${memoryEfficiency * 3.14} 314`"
-                  />
-                </svg>
-                <div class="gauge-center">
-                  <div class="gauge-value">{{ memoryEfficiency }}%</div>
-                  <div class="gauge-label">效率</div>
+          <div class="overview-content">
+            <div class="overview-gauge">
+              <div class="memory-gauge">
+                <div class="gauge-container gauge-sm">
+                  <svg class="gauge-svg" viewBox="0 0 120 120">
+                    <defs>
+                      <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#667eea"/>
+                        <stop offset="100%" style="stop-color:#764ba2"/>
+                      </linearGradient>
+                    </defs>
+                    <circle class="gauge-background" cx="60" cy="60" r="50" />
+                    <circle class="gauge-progress" cx="60" cy="60" r="50" :stroke-dasharray="`${memoryEfficiency * 3.14} 314`" />
+                  </svg>
+                  <div class="gauge-center">
+                    <div class="gauge-value">{{ memoryEfficiency }}%</div>
+                    <div class="gauge-label">效率</div>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div class="memory-details">
-              <div class="memory-item">
-                <span class="memory-label">当前使用</span>
-                <span class="memory-value current">{{ estimatedMemoryUsage }}MB</span>
-              </div>
-              <div class="memory-item">
-                <span class="memory-label">已节省</span>
-                <span class="memory-value saved">{{ estimatedMemorySaved }}MB</span>
+              <div class="memory-brief">
+                <div class="kv"><span>使用</span><b>{{ estimatedMemoryUsage }}MB</b></div>
+                <div class="kv"><span>节省</span><b class="ok">{{ estimatedMemorySaved }}MB</b></div>
               </div>
             </div>
-          </div>
-        </div>
-
-        <!-- 标签页统计卡片 -->
-        <div class="stat-card tabs-card">
-          <div class="stat-header">
-            <div class="stat-icon-wrapper tabs">
-              <svg viewBox="0 0 24 24" fill="currentColor" class="stat-icon-svg">
-                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/>
-              </svg>
-            </div>
-            <div class="stat-title-group">
-              <h3 class="stat-title">标签页</h3>
-              <p class="stat-subtitle">分组统计</p>
-            </div>
-          </div>
-          <div class="stat-content">
-            <div class="tabs-stats">
-              <div class="tab-stat-item">
-                <div class="tab-stat-number total">{{ totalTabs }}</div>
-                <div class="tab-stat-label">总标签</div>
+            <div class="overview-metrics">
+              <div class="metric">
+                <div class="metric-title">标签页</div>
+                <div class="metric-grid">
+                  <div class="cell"><div class="num">{{ totalTabs }}</div><div class="lbl">总数</div></div>
+                  <div class="cell"><div class="num ok">{{ activeTabs }}</div><div class="lbl">活跃</div></div>
+                  <div class="cell"><div class="num muted">{{ dormantTabs }}</div><div class="lbl">休眠</div></div>
+                </div>
               </div>
-              <div class="tab-stat-item">
-                <div class="tab-stat-number active">{{ activeTabs }}</div>
-                <div class="tab-stat-label">活跃</div>
-              </div>
-              <div class="tab-stat-item">
-                <div class="tab-stat-number dormant">{{ dormantTabs }}</div>
-                <div class="tab-stat-label">休眠</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 分组统计卡片 -->
-        <div class="stat-card groups-card">
-          <div class="stat-header">
-            <div class="stat-icon-wrapper groups">
-              <svg viewBox="0 0 24 24" fill="currentColor" class="stat-icon-svg">
-                <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/>
-              </svg>
-            </div>
-            <div class="stat-title-group">
-              <h3 class="stat-title">分组</h3>
-              <p class="stat-subtitle">组织管理</p>
-            </div>
-          </div>
-          <div class="stat-content">
-            <div class="groups-stats">
-              <div class="group-stat-item">
-                <div class="group-stat-number total">{{ groupCount }}</div>
-                <div class="group-stat-label">分组数</div>
-              </div>
-              <div class="group-stat-item">
-                <div class="group-stat-number staging">{{ stagingCount }}</div>
-                <div class="group-stat-label">暂存</div>
+              <div class="metric">
+                <div class="metric-title">分组</div>
+                <div class="metric-grid">
+                  <div class="cell"><div class="num">{{ groupCount }}</div><div class="lbl">分组</div></div>
+                  <div class="cell"><div class="num warn">{{ stagingCount }}</div><div class="lbl">暂存</div></div>
+                </div>
               </div>
             </div>
           </div>
@@ -161,7 +110,7 @@
                 <span class="group-icon">{{ group.icon }}</span>
               </div>
               <div class="group-details">
-                <span class="group-name">{{ group.name }}</span>
+                <span class="group-name" :title="group.name">{{ group.name }}</span>
                 <span class="tab-count">{{ group.tabs.length }} 个标签</span>
               </div>
             </div>
@@ -189,7 +138,7 @@
                      class="tab-favicon" />
               </div>
               <div class="tab-content">
-                <span class="tab-title">{{ tab.title }}</span>
+                <span class="tab-title" :title="tab.title">{{ tab.title }}</span>
                 <span class="tab-url">{{ tab.url }}</span>
               </div>
               <div class="tab-actions">
@@ -513,6 +462,30 @@ onMounted(async () => {
   gap: 6px;
 }
 
+/* 使用说明样式 */
+.help {
+  margin: 8px 12px;
+  padding: 10px 12px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+}
+
+.help ul {
+  margin: 0;
+  padding-left: 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 16px;
+}
+
+.help li {
+  font-size: 13px;
+  color: #374151;
+  line-height: 1.5;
+  list-style: disc;
+}
+
 .btn { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; font-size: 12px; font-weight: 500; color: #fff; background: #4f46e5; border: 1px solid #4f46e5; border-radius: 4px; cursor: pointer; }
 
 .btn::before { display: none; }
@@ -622,6 +595,7 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   gap: 8px;
+  min-width: 0;
 }
 
 .group-icon-wrapper {
@@ -646,7 +620,9 @@ onMounted(async () => {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 .group-details {
@@ -668,6 +644,7 @@ onMounted(async () => {
 .group-tabs {
   max-height: 400px;
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .tab-item {
@@ -679,6 +656,7 @@ onMounted(async () => {
   border-bottom: 1px solid rgba(0,0,0,0.05);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
+  overflow: hidden;
 }
 
 .tab-item:hover {
@@ -708,6 +686,7 @@ onMounted(async () => {
 
 .tab-content {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -718,7 +697,9 @@ onMounted(async () => {
   color: #495057;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   line-height: 1.4;
   min-width: 0;
   max-width: 100%;
@@ -947,7 +928,7 @@ onMounted(async () => {
 
 .stats-container {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 12px;
   max-width: 100%;
 }
@@ -955,7 +936,7 @@ onMounted(async () => {
 .stat-card {
   background: #ffffff;
   border-radius: 8px;
-  padding: 12px;
+  padding: 10px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.08);
   transition: background-color 0.2s ease;
   border: 1px solid #e9ecef;
@@ -987,14 +968,14 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   font-weight: 600;
   color: #495057;
 }
 
 .stat-icon-wrapper {
-  width: 32px;
-  height: 32px;
+  width: 20px;
+  height: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1010,8 +991,8 @@ onMounted(async () => {
 }
 
 .stat-icon-svg {
-  width: 20px;
-  height: 20px;
+  width: 14px;
+  height: 14px;
   color: white;
 }
 
@@ -1021,11 +1002,11 @@ onMounted(async () => {
 }
 
 .stat-title {
-  font-size: 15px;
+  font-size: 13px;
 }
 
 .stat-subtitle {
-  font-size: 12px;
+  font-size: 11px;
   color: #6c757d;
   margin-top: 4px;
 }
@@ -1033,8 +1014,32 @@ onMounted(async () => {
 .stat-content {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
+
+/* 概览卡片紧凑布局 */
+.overview-card .overview-content {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 8px 12px;
+}
+
+.gauge-sm { width: 56px; height: 56px; }
+.overview-gauge { display:flex; align-items:center; gap: 8px; }
+.memory-brief { display:flex; flex-direction: column; gap: 4px; }
+.memory-brief .kv { display:flex; align-items:center; gap:6px; font-size:12px; color:#374151; }
+.memory-brief .kv .ok { color:#28a745; }
+
+.overview-metrics { display:grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.metric { background:#f9fafb; border:1px solid #e5e7eb; border-radius:6px; padding:8px; }
+.metric-title { font-size:12px; color:#6b7280; margin-bottom:6px; }
+.metric-grid { display:grid; grid-template-columns: repeat(3, 1fr); gap:6px; }
+.metric-grid .cell { text-align:center; }
+.metric-grid .num { font-size:14px; font-weight:700; color:#111827; }
+.metric-grid .num.ok { color:#28a745; }
+.metric-grid .num.muted { color:#6c757d; }
+.metric-grid .num.warn { color:#ff9800; }
+.metric-grid .lbl { font-size:10px; color:#6b7280; }
 
 /* 内存表盘样式 */
 .memory-gauge {
