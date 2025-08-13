@@ -6,7 +6,15 @@ export const useTabStore = defineStore('tabs', () => {
   const groups = ref([])
   const stagingTabs = ref([])
   const allTabs = ref([])
-  const groupRules = ref([])
+  const groupStrategy = ref('domain') // 默认按域名分组
+
+  // 分组策略选项
+  const groupStrategies = [
+    { value: 'domain', label: '按域名', icon: '🌐' },
+    { value: 'keyword', label: '按关键词', icon: '🏷️' },
+    { value: 'time', label: '按时间', icon: '⏰' },
+    { value: 'manual', label: '手动分组', icon: '✋' }
+  ]
 
   // 计算属性
   const totalTabs = computed(() => {
@@ -19,7 +27,7 @@ export const useTabStore = defineStore('tabs', () => {
   })
 
   const dormantTabs = computed(() => {
-    return allTabs.value.filter(tab => tab.dormant).length
+    return allTabs.value.filter(tab => tab.discarded).length
   })
 
   const activeTabs = computed(() => {
@@ -68,7 +76,7 @@ export const useTabStore = defineStore('tabs', () => {
     await loadTabs()
     await loadGroups()
     await loadStagingTabs()
-    await loadGroupRules()
+    await loadGroupStrategy()
     await autoGroupTabs()
     await syncTabStates() // 同步标签页状态
     startDormancyMonitor()
@@ -76,7 +84,9 @@ export const useTabStore = defineStore('tabs', () => {
 
   const loadTabs = async () => {
     try {
+      console.log('Loading tabs...')
       const tabs = await chrome.tabs.query({})
+      console.log('Chrome tabs query result:', tabs.length, 'tabs')
       
       // 加载保存的标签页状态
       const result = await chrome.storage.local.get(['tabStates'])
@@ -94,6 +104,9 @@ export const useTabStore = defineStore('tabs', () => {
           lastActive: savedState.lastActive || Date.now()
         }
       })
+      
+      console.log('Processed tabs:', allTabs.value.length)
+      console.log('Sample tab:', allTabs.value[0])
     } catch (error) {
       console.error('加载标签页失败:', error)
     }
@@ -129,12 +142,12 @@ export const useTabStore = defineStore('tabs', () => {
     }
   }
 
-  const loadGroupRules = async () => {
+  const loadGroupStrategy = async () => {
     try {
-      const result = await chrome.storage.local.get(['groupRules'])
-      groupRules.value = result.groupRules || []
+      const result = await chrome.storage.local.get(['groupStrategy'])
+      groupStrategy.value = result.groupStrategy || 'domain'
     } catch (error) {
-      console.error('加载分组规则失败:', error)
+      console.error('加载分组策略失败:', error)
     }
   }
 
@@ -154,6 +167,14 @@ export const useTabStore = defineStore('tabs', () => {
     }
   }
 
+  const saveGroupStrategy = async () => {
+    try {
+      await chrome.storage.local.set({ groupStrategy: groupStrategy.value })
+    } catch (error) {
+      console.error('保存分组策略失败:', error)
+    }
+  }
+
   const saveTabStates = async () => {
     try {
       const tabStates = {}
@@ -170,31 +191,117 @@ export const useTabStore = defineStore('tabs', () => {
   }
 
   const autoGroupTabs = async () => {
-    // 智能分组逻辑
-    const domainGroups = {}
-    const keywordGroups = {}
-    const timeGroups = {}
+    console.log('autoGroupTabs called, strategy:', groupStrategy.value)
+    console.log('Total tabs:', allTabs.value.length)
+    
+    // 过滤掉特殊页面
+    const validTabs = allTabs.value.filter(tab => {
+      if (!tab.url) return false
+      return !tab.url.startsWith('chrome://') && 
+             !tab.url.startsWith('chrome-extension://') && 
+             !tab.url.startsWith('about:')
+    })
+    
+    console.log('Valid tabs after filtering:', validTabs.length)
 
-    allTabs.value.forEach(tab => {
-      if (!tab.url) return
-
-      // 域名分组
-      const domain = new URL(tab.url).hostname
-      if (!domainGroups[domain]) {
-        domainGroups[domain] = {
-          id: `domain_${domain}`,
-          name: getDomainDisplayName(domain),
-          icon: getDomainIcon(domain),
-          tabs: [],
-          collapsed: false,
-          type: 'domain'
+    if (groupStrategy.value === 'manual') {
+      // 手动分组模式，保持现有分组，但确保所有标签都在分组中
+      const existingTabIds = new Set()
+      groups.value.forEach(group => {
+        group.tabs.forEach(tab => existingTabIds.add(tab.id))
+      })
+      
+      // 将未分组的标签添加到暂存区或创建新分组
+      validTabs.forEach(tab => {
+        if (!existingTabIds.has(tab.id)) {
+          // 如果暂存区不存在，创建它
+          if (!groups.value.find(g => g.id === 'staging')) {
+            groups.value.push({
+              id: 'staging',
+              name: '未分组',
+              icon: '📌',
+              tabs: [],
+              collapsed: false,
+              type: 'manual',
+              strategy: 'manual'
+            })
+          }
+          const stagingGroup = groups.value.find(g => g.id === 'staging')
+          stagingGroup.tabs.push(tab)
         }
+      })
+    } else {
+      // 自动分组模式，重新分组
+      console.log('Using automatic grouping strategy:', groupStrategy.value)
+      groups.value = []
+      
+      switch (groupStrategy.value) {
+        case 'domain':
+          await groupByDomain(validTabs)
+          break
+        case 'keyword':
+          await groupByKeyword(validTabs)
+          break
+        case 'time':
+          await groupByTime(validTabs)
+          break
       }
-      domainGroups[domain].tabs.push(tab)
+    }
 
-      // 关键词分组
-      const keywords = extractKeywords(tab.title)
-      keywords.forEach(keyword => {
+    console.log('Final groups count:', groups.value.length)
+    await saveGroups()
+  }
+
+  const groupByDomain = async (tabs) => {
+    console.log('groupByDomain called with', tabs.length, 'tabs')
+    const domainGroups = {}
+
+    tabs.forEach(tab => {
+      try {
+        const url = new URL(tab.url)
+        const domain = url.hostname
+        console.log('Processing tab:', tab.title, 'domain:', domain)
+        
+        if (!domainGroups[domain]) {
+          domainGroups[domain] = {
+            id: `domain_${domain}`,
+            name: getDomainDisplayName(domain),
+            icon: getDomainIcon(domain),
+            tabs: [],
+            collapsed: false,
+            type: 'domain',
+            strategy: 'domain'
+          }
+        }
+        domainGroups[domain].tabs.push(tab)
+      } catch (error) {
+        console.warn('解析URL失败:', tab.url)
+      }
+    })
+
+    console.log('Domain groups created:', Object.keys(domainGroups))
+    
+    // 保留所有分组，包括单个标签的分组
+    Object.values(domainGroups).forEach(group => {
+      console.log('Adding group:', group.name, 'with', group.tabs.length, 'tabs')
+      groups.value.push(group)
+    })
+    
+    console.log('Total groups after domain grouping:', groups.value.length)
+  }
+
+  const groupByKeyword = async (tabs) => {
+    const keywordGroups = {}
+    const keywords = ['开发', '设计', '文档', '会议', '购物', '娱乐', '学习', '工作']
+
+    tabs.forEach(tab => {
+      const matchedKeywords = keywords.filter(keyword => 
+        tab.title.toLowerCase().includes(keyword.toLowerCase()) ||
+        tab.url.toLowerCase().includes(keyword.toLowerCase())
+      )
+
+      if (matchedKeywords.length > 0) {
+        const keyword = matchedKeywords[0] // 取第一个匹配的关键词
         if (!keywordGroups[keyword]) {
           keywordGroups[keyword] = {
             id: `keyword_${keyword}`,
@@ -202,54 +309,97 @@ export const useTabStore = defineStore('tabs', () => {
             icon: getKeywordIcon(keyword),
             tabs: [],
             collapsed: false,
-            type: 'keyword'
+            type: 'keyword',
+            strategy: 'keyword'
           }
         }
         keywordGroups[keyword].tabs.push(tab)
-      })
+      } else {
+        // 未匹配的标签放入"其他"分组
+        if (!keywordGroups['其他']) {
+          keywordGroups['其他'] = {
+            id: 'keyword_其他',
+            name: '其他',
+            icon: '📌',
+            tabs: [],
+            collapsed: false,
+            type: 'keyword',
+            strategy: 'keyword'
+          }
+        }
+        keywordGroups['其他'].tabs.push(tab)
+      }
+    })
 
-      // 时间分组（15分钟内）
-      const now = Date.now()
-      const timeKey = Math.floor(now / (15 * 60 * 1000)) // 15分钟窗口
+    // 保留所有分组，包括单个标签的分组
+    Object.values(keywordGroups).forEach(group => {
+      groups.value.push(group)
+    })
+  }
+
+  const groupByTime = async (tabs) => {
+    const timeGroups = {}
+    const now = Date.now()
+    const oneHour = 60 * 60 * 1000
+    const oneDay = 24 * oneHour
+
+    tabs.forEach(tab => {
+      const timeDiff = now - tab.lastActive
+      let timeKey, groupName, icon
+
+      if (timeDiff < oneHour) {
+        timeKey = 'recent'
+        groupName = '最近1小时'
+        icon = '🕐'
+      } else if (timeDiff < oneDay) {
+        timeKey = 'today'
+        groupName = '今天'
+        icon = '📅'
+      } else {
+        timeKey = 'older'
+        groupName = '更早'
+        icon = '📚'
+      }
+
       if (!timeGroups[timeKey]) {
         timeGroups[timeKey] = {
           id: `time_${timeKey}`,
-          name: '临时任务',
-          icon: '⏰',
+          name: groupName,
+          icon: icon,
           tabs: [],
           collapsed: false,
-          type: 'time'
+          type: 'time',
+          strategy: 'time'
         }
       }
       timeGroups[timeKey].tabs.push(tab)
     })
 
-    // 合并分组
-    const newGroups = []
-    
-    // 添加域名分组（至少2个标签）
-    Object.values(domainGroups).forEach(group => {
-      if (group.tabs.length >= 2) {
-        newGroups.push(group)
-      }
-    })
-
-    // 添加关键词分组（至少3个标签）
-    Object.values(keywordGroups).forEach(group => {
-      if (group.tabs.length >= 3) {
-        newGroups.push(group)
-      }
-    })
-
-    // 添加时间分组（至少2个标签）
+    // 保留所有分组，包括单个标签的分组
     Object.values(timeGroups).forEach(group => {
-      if (group.tabs.length >= 2) {
-        newGroups.push(group)
-      }
+      groups.value.push(group)
     })
+  }
 
-    groups.value = newGroups
+  const changeGroupStrategy = async (strategy) => {
+    groupStrategy.value = strategy
+    await saveGroupStrategy()
+    await autoGroupTabs()
+  }
+
+  const createManualGroup = async (name, icon = '📁') => {
+    const newGroup = {
+      id: `manual_${Date.now()}`,
+      name: name,
+      icon: icon,
+      tabs: [],
+      collapsed: false,
+      type: 'manual',
+      strategy: 'manual'
+    }
+    groups.value.push(newGroup)
     await saveGroups()
+    return newGroup.id
   }
 
   const getDomainDisplayName = (domain) => {
@@ -259,7 +409,12 @@ export const useTabStore = defineStore('tabs', () => {
       'figma.com': 'Figma',
       'notion.so': 'Notion',
       'google.com': 'Google',
-      'youtube.com': 'YouTube'
+      'youtube.com': 'YouTube',
+      'baidu.com': '百度',
+      'zhihu.com': '知乎',
+      'bilibili.com': 'B站',
+      'taobao.com': '淘宝',
+      'jd.com': '京东'
     }
     return domainMap[domain] || domain
   }
@@ -271,26 +426,28 @@ export const useTabStore = defineStore('tabs', () => {
       'figma.com': '🎨',
       'notion.so': '📝',
       'google.com': '🔍',
-      'youtube.com': '📺'
+      'youtube.com': '📺',
+      'baidu.com': '🔍',
+      'zhihu.com': '💡',
+      'bilibili.com': '📺',
+      'taobao.com': '🛒',
+      'jd.com': '🛒'
     }
     return iconMap[domain] || '🌐'
   }
 
   const getKeywordIcon = (keyword) => {
     const iconMap = {
-      '预算': '💰',
-      '报价': '💰',
-      '设计': '🎨',
       '开发': '💻',
+      '设计': '🎨',
       '文档': '📄',
-      '会议': '📅'
+      '会议': '📅',
+      '购物': '🛒',
+      '娱乐': '🎮',
+      '学习': '📚',
+      '工作': '💼'
     }
     return iconMap[keyword] || '🏷️'
-  }
-
-  const extractKeywords = (title) => {
-    const keywords = ['预算', '报价', '设计', '开发', '文档', '会议']
-    return keywords.filter(keyword => title.includes(keyword))
   }
 
   const toggleGroupCollapse = (groupId) => {
@@ -301,9 +458,47 @@ export const useTabStore = defineStore('tabs', () => {
     }
   }
 
-  const deleteGroup = (groupId) => {
+  const updateGroup = async (groupData) => {
+    const groupIndex = groups.value.findIndex(g => g.id === groupData.id)
+    if (groupIndex !== -1) {
+      groups.value[groupIndex] = {
+        ...groups.value[groupIndex],
+        name: groupData.name,
+        icon: groupData.icon,
+        type: groupData.type
+      }
+      await saveGroups()
+    } else {
+      throw new Error('分组不存在')
+    }
+  }
+
+  const deleteGroup = async (groupId) => {
+    const group = groups.value.find(g => g.id === groupId)
+    if (!group) {
+      throw new Error('分组不存在')
+    }
+    
+    // 关闭分组中的所有标签页
+    if (group.tabs.length > 0) {
+      console.log(`Closing ${group.tabs.length} tabs in group: ${group.name}`)
+      
+      for (const tab of group.tabs) {
+        try {
+          await chrome.tabs.remove(tab.id)
+          console.log(`Closed tab: ${tab.title}`)
+        } catch (error) {
+          console.warn(`Failed to close tab ${tab.id}:`, error.message)
+        }
+      }
+    }
+    
+    // 删除分组
     groups.value = groups.value.filter(g => g.id !== groupId)
-    saveGroups()
+    await saveGroups()
+    
+    // 重新加载标签页数据
+    await loadTabs()
   }
 
   const activateTab = async (tabId) => {
@@ -326,7 +521,7 @@ export const useTabStore = defineStore('tabs', () => {
       const tab = allTabs.value.find(t => t.id === tabId)
       if (!tab) return
 
-      if (tab.dormant) {
+      if (tab.discarded) {
         // 唤醒标签页
         await chrome.tabs.reload(tabId)
         tab.dormant = false
@@ -420,7 +615,7 @@ export const useTabStore = defineStore('tabs', () => {
       const thirtyMinutes = 30 * 60 * 1000
 
       for (const tab of allTabs.value) {
-        if (!tab.dormant && (now - tab.lastActive) > thirtyMinutes) {
+        if (!tab.discarded && (now - tab.lastActive) > thirtyMinutes) {
           try {
             await toggleTabDormant(tab.id)
           } catch (error) {
@@ -469,7 +664,8 @@ export const useTabStore = defineStore('tabs', () => {
     groups,
     stagingTabs,
     allTabs,
-    groupRules,
+    groupStrategy,
+    groupStrategies,
     
     // 计算属性
     totalTabs,
@@ -484,7 +680,10 @@ export const useTabStore = defineStore('tabs', () => {
     
     // 方法
     initialize,
+    changeGroupStrategy,
+    createManualGroup,
     toggleGroupCollapse,
+    updateGroup,
     deleteGroup,
     activateTab,
     toggleTabDormant,

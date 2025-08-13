@@ -13,6 +13,14 @@
           <span class="subtitle">智能标签页管理</span>
         </div>
         <div class="header-actions">
+          <div class="strategy-selector">
+            <select v-model="tabStore.groupStrategy" @change="changeStrategy" class="strategy-select">
+              <option v-for="strategy in tabStore.groupStrategies" :key="strategy.value" :value="strategy.value">
+                {{ strategy.icon }} {{ strategy.label }}
+              </option>
+            </select>
+            <span class="strategy-info">当前: {{ tabStore.groupStrategies.find(s => s.value === tabStore.groupStrategy)?.label }}</span>
+          </div>
           <button @click="createSnapshot" class="btn btn-primary">创建快照</button>
           <button @click="toggleStagingArea" class="btn btn-secondary">{{ stagingAreaVisible ? '收起暂存区' : '打开暂存区' }}</button>
           <button @click="showHelp = !showHelp" class="btn btn-outline">{{ showHelp ? '关闭说明' : '使用说明' }}</button>
@@ -98,6 +106,13 @@
     <main class="main">
       <!-- 标签页分组 -->
       <div class="tab-groups">
+        <div class="groups-header">
+          <h3>标签页分组</h3>
+          <button @click="createNewGroup" class="btn btn-outline btn-small">新建分组</button>
+        </div>
+        <div v-if="tabGroups.length === 0" class="no-groups">
+          <p>暂无分组，请选择分组策略或等待自动分组</p>
+        </div>
         <div 
           v-for="group in tabGroups" 
           :key="group.id" 
@@ -187,8 +202,51 @@
         </div>
       </div>
 
-      <!-- 工作区快照 -->
-      <div class="snapshots">
+          <!-- 编辑分组弹窗 -->
+    <div v-if="showEditGroup" class="modal-overlay" @click="closeEditGroup">
+      <div class="modal-content" @click.stop>
+        <div class="modal-header">
+          <h3>编辑分组</h3>
+          <button @click="closeEditGroup" class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>分组名称</label>
+            <input v-model="editingGroup.name" type="text" class="form-input" placeholder="输入分组名称">
+          </div>
+          <div class="form-group">
+            <label>分组图标</label>
+            <div class="icon-selector">
+              <button 
+                v-for="icon in availableIcons" 
+                :key="icon"
+                @click="editingGroup.icon = icon"
+                class="icon-option"
+                :class="{ 'selected': editingGroup.icon === icon }"
+              >
+                {{ icon }}
+              </button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>分组类型</label>
+            <select v-model="editingGroup.type" class="form-select">
+              <option value="manual">手动分组</option>
+              <option value="domain">域名分组</option>
+              <option value="keyword">关键词分组</option>
+              <option value="time">时间分组</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button @click="closeEditGroup" class="btn btn-outline">取消</button>
+          <button @click="saveEditGroup" class="btn btn-primary">保存</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 工作区快照 -->
+    <div class="snapshots">
         <div class="snapshots-header">
           <div class="snapshots-title">
             <div class="snapshots-icon-wrapper">
@@ -232,6 +290,23 @@ const snapshotStore = useSnapshotStore()
 // 响应式数据
 const stagingAreaVisible = ref(false)
 const showHelp = ref(false)
+const showEditGroup = ref(false)
+const editingGroup = ref({
+  id: '',
+  name: '',
+  icon: '📁',
+  type: 'manual'
+})
+
+// 可用图标列表
+const availableIcons = [
+  '📁', '📂', '🗂️', '📋', '📝', '📄', '📰', '📚', '📖', '📕', '📗', '📘', '📙',
+  '🌐', '🌍', '🌎', '🌏', '🔗', '🔖', '🏷️', '📌', '📍', '🎯', '🎪', '🎨', '🎭',
+  '💻', '💼', '💡', '🔧', '⚙️', '🎮', '🎵', '🎬', '📺', '📷', '📹', '🎥', '📱',
+  '🛒', '💰', '💳', '📊', '📈', '📉', '📋', '✅', '❌', '⚠️', 'ℹ️', '🔍', '🔎',
+  '⏰', '⏳', '⌛', '📅', '📆', '🗓️', '🕐', '🕑', '🕒', '🕓', '🕔', '🕕', '🕖',
+  '🕗', '🕘', '🕙', '🕚', '🕛', '🕜', '🕝', '🕞', '🕟', '🕠', '🕡', '🕢', '🕣'
+]
 const tabGroups = computed(() => tabStore.groups)
 const stagingTabs = computed(() => tabStore.stagingTabs)
 const snapshots = computed(() => snapshotStore.snapshots)
@@ -255,13 +330,79 @@ const toggleGroup = (groupId) => {
 }
 
 const editGroup = (groupId) => {
-  // 实现编辑分组逻辑
-  console.log('编辑分组:', groupId)
+  const group = tabStore.groups.find(g => g.id === groupId)
+  if (group) {
+    editingGroup.value = {
+      id: group.id,
+      name: group.name,
+      icon: group.icon,
+      type: group.type || 'manual'
+    }
+    showEditGroup.value = true
+  }
 }
 
-const deleteGroup = (groupId) => {
-  if (confirm('确定要删除这个分组吗？')) {
-    tabStore.deleteGroup(groupId)
+const closeEditGroup = () => {
+  showEditGroup.value = false
+  editingGroup.value = {
+    id: '',
+    name: '',
+    icon: '📁',
+    type: 'manual'
+  }
+}
+
+const saveEditGroup = async () => {
+  if (!editingGroup.value.name.trim()) {
+    alert('请输入分组名称')
+    return
+  }
+  
+  try {
+    if (editingGroup.value.id) {
+      // 更新现有分组
+      await tabStore.updateGroup(editingGroup.value)
+    } else {
+      // 创建新分组
+      await tabStore.createManualGroup(editingGroup.value.name, editingGroup.value.icon)
+    }
+    closeEditGroup()
+  } catch (error) {
+    console.error('保存分组失败:', error)
+    alert('保存分组失败：' + error.message)
+  }
+}
+
+const createNewGroup = () => {
+  editingGroup.value = {
+    id: '',
+    name: '',
+    icon: '📁',
+    type: 'manual'
+  }
+  showEditGroup.value = true
+}
+
+const deleteGroup = async (groupId) => {
+  const group = tabStore.groups.find(g => g.id === groupId)
+  if (!group) return
+  
+  const tabCount = group.tabs.length
+  let message = `确定要删除分组"${group.name}"吗？`
+  
+  if (tabCount > 0) {
+    message += `\n\n⚠️ 警告：该分组包含 ${tabCount} 个标签页`
+    message += '\n\n删除分组将同时关闭所有标签页，此操作不可撤销！'
+    message += '\n\n是否继续？'
+  }
+  
+  if (confirm(message)) {
+    try {
+      await tabStore.deleteGroup(groupId)
+    } catch (error) {
+      console.error('删除分组失败:', error)
+      alert('删除分组失败：' + error.message)
+    }
   }
 }
 
@@ -285,6 +426,12 @@ const clearStaging = () => {
   if (confirm('确定要清空暂存区吗？')) {
     tabStore.clearStaging()
   }
+}
+
+const changeStrategy = async () => {
+  console.log('Changing strategy to:', tabStore.groupStrategy)
+  await tabStore.changeGroupStrategy(tabStore.groupStrategy)
+  console.log('Strategy changed, groups:', tabStore.groups.length)
 }
 
 const createSnapshot = async () => {
@@ -371,8 +518,11 @@ const onDrop = (event, groupId) => {
 
 // 初始化
 onMounted(async () => {
+  console.log('App initializing...')
   await tabStore.initialize()
+  console.log('Tab store initialized, groups:', tabStore.groups.length, 'strategy:', tabStore.groupStrategy)
   await snapshotStore.initialize()
+  console.log('Snapshot store initialized')
 })
 </script>
 
@@ -1195,6 +1345,197 @@ onMounted(async () => {
   font-size: 10px;
   color: #6c757d;
   margin-top: 4px;
+}
+
+/* 分组策略选择器样式 */
+.strategy-selector {
+  display: flex;
+  align-items: center;
+}
+
+.strategy-select {
+  padding: 8px 12px;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  background: white;
+  font-size: 14px;
+  color: #495057;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.strategy-select:hover {
+  border-color: #adb5bd;
+}
+
+.strategy-select:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.strategy-info {
+  margin-left: 8px;
+  font-size: 12px;
+  color: #6c757d;
+}
+
+.no-groups {
+  text-align: center;
+  padding: 40px 20px;
+  color: #6c757d;
+  font-size: 14px;
+}
+
+/* 弹窗样式 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  width: 90%;
+  max-width: 500px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #495057;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #6c757d;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-close:hover {
+  color: #495057;
+}
+
+.modal-body {
+  padding: 24px;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 20px 24px;
+  border-top: 1px solid #e9ecef;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #495057;
+  font-size: 14px;
+}
+
+.form-input,
+.form-select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #495057;
+  background: white;
+}
+
+.form-input:focus,
+.form-select:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.icon-selector {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+  gap: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  padding: 12px;
+  background: #f8f9fa;
+}
+
+.icon-option {
+  width: 40px;
+  height: 40px;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  background: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  transition: all 0.2s ease;
+}
+
+.icon-option:hover {
+  border-color: #007bff;
+  background: #f8f9ff;
+}
+
+.icon-option.selected {
+  border-color: #007bff;
+  background: #007bff;
+  color: white;
+}
+
+.groups-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 0 4px;
+}
+
+.groups-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #495057;
 }
 
 /* 响应式设计 */
