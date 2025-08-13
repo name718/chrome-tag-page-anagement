@@ -13,21 +13,24 @@
           <span class="subtitle">智能标签页管理</span>
         </div>
         <div class="header-actions">
-          <button @click="createSnapshot" class="btn btn-primary btn-glow">
-            <svg viewBox="0 0 24 24" fill="currentColor" class="btn-icon-svg">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-            </svg>
-            创建快照
-          </button>
-          <button @click="toggleStagingArea" class="btn btn-secondary">
-            <svg viewBox="0 0 24 24" fill="currentColor" class="btn-icon-svg">
-              <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/>
-            </svg>
-            {{ stagingAreaVisible ? '收起暂存区' : '打开暂存区' }}
-          </button>
+          <button @click="createSnapshot" class="btn btn-primary">创建快照</button>
+          <button @click="toggleStagingArea" class="btn btn-secondary">{{ stagingAreaVisible ? '收起暂存区' : '打开暂存区' }}</button>
+          <button @click="showHelp = !showHelp" class="btn btn-outline">{{ showHelp ? '关闭说明' : '使用说明' }}</button>
         </div>
       </div>
     </header>
+
+    <!-- 使用说明 -->
+    <div v-if="showHelp" class="help">
+      <ul>
+        <li>点击标签行：激活该标签页</li>
+        <li>休眠/唤醒：将标签页休眠以节省内存，或恢复使用</li>
+        <li>暂存：将标签页移入暂存区，稍后可从暂存区恢复</li>
+        <li>分组标题：点击可折叠/展开分组</li>
+        <li>编辑/删除分组：在分组右侧的“编辑/删除”按钮</li>
+        <li>快照：保存当前工作区，稍后可一键恢复</li>
+      </ul>
+    </div>
 
     <!-- 统计仪表板 -->
     <div class="stats-section">
@@ -163,16 +166,8 @@
               </div>
             </div>
             <div class="group-actions">
-              <button @click.stop="editGroup(group.id)" class="btn-icon" title="编辑分组">
-                <svg viewBox="0 0 24 24" fill="currentColor" class="icon-svg">
-                  <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
-                </svg>
-              </button>
-              <button @click.stop="deleteGroup(group.id)" class="btn-icon danger" title="删除分组">
-                <svg viewBox="0 0 24 24" fill="currentColor" class="icon-svg">
-                  <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
-                </svg>
-              </button>
+              <button @click.stop="editGroup(group.id)" class="btn btn-small" title="编辑分组">编辑</button>
+              <button @click.stop="deleteGroup(group.id)" class="btn btn-small" title="删除分组">删除</button>
             </div>
           </div>
           
@@ -198,19 +193,8 @@
                 <span class="tab-url">{{ tab.url }}</span>
               </div>
               <div class="tab-actions">
-                <button @click.stop="toggleTabDormant(tab.id)" class="btn-icon" :title="tab.dormant ? '激活标签页' : '休眠标签页'">
-                  <svg v-if="tab.dormant" viewBox="0 0 24 24" fill="currentColor" class="icon-svg">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                  </svg>
-                  <svg v-else viewBox="0 0 24 24" fill="currentColor" class="icon-svg">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                  </svg>
-                </button>
-                <button @click.stop="moveToStaging(tab.id)" class="btn-icon" title="移动到暂存区">
-                  <svg viewBox="0 0 24 24" fill="currentColor" class="icon-svg">
-                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/>
-                  </svg>
-                </button>
+                <button @click.stop="toggleTabDormant(tab.id)" class="btn btn-small" :title="tab.dormant ? '唤醒标签页' : '休眠标签页'">{{ tab.dormant ? '唤醒' : '休眠' }}</button>
+                <button @click.stop="moveToStaging(tab.id)" class="btn btn-small" title="移动到暂存区">暂存</button>
               </div>
             </div>
           </div>
@@ -249,11 +233,7 @@
               <span class="tab-title">{{ tab.title }}</span>
               <span class="tab-url">{{ tab.url }}</span>
             </div>
-            <button class="btn-icon restore" title="恢复标签页">
-              <svg viewBox="0 0 24 24" fill="currentColor" class="icon-svg">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-              </svg>
-            </button>
+            <button class="btn btn-small" title="恢复标签页">恢复</button>
           </div>
         </div>
       </div>
@@ -284,11 +264,7 @@
               <span class="snapshot-name">{{ snapshot.name }}</span>
               <span class="snapshot-date">{{ formatDate(snapshot.createdAt) }}</span>
             </div>
-            <button @click.stop="deleteSnapshot(snapshot.id)" class="btn-icon danger" title="删除快照">
-              <svg viewBox="0 0 24 24" fill="currentColor" class="icon-svg">
-                <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
-              </svg>
-            </button>
+            <button @click.stop="deleteSnapshot(snapshot.id)" class="btn btn-small" title="删除快照">删除</button>
           </div>
         </div>
       </div>
@@ -306,6 +282,7 @@ const snapshotStore = useSnapshotStore()
 
 // 响应式数据
 const stagingAreaVisible = ref(false)
+const showHelp = ref(false)
 const tabGroups = computed(() => tabStore.groups)
 const stagingTabs = computed(() => tabStore.stagingTabs)
 const snapshots = computed(() => snapshotStore.snapshots)
@@ -482,14 +459,14 @@ onMounted(async () => {
 
 .subtitle {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.8);
+  color: #6b7280;
   font-weight: 300;
   letter-spacing: 0.5px;
 }
 
 .header-actions {
   display: flex;
-  gap: 8px;
+  gap: 6px;
 }
 
 .btn { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; font-size: 12px; font-weight: 500; color: #fff; background: #4f46e5; border: 1px solid #4f46e5; border-radius: 4px; cursor: pointer; }
