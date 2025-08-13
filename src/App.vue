@@ -558,7 +558,20 @@ const formatDate = (date) => {
 
 // 拖拽功能
 const onDragStart = (event, tab) => {
-  event.dataTransfer.setData('text/plain', JSON.stringify(tab))
+  try {
+    if (!tab || !tab.id) {
+      console.warn('无效的标签页数据:', tab)
+      event.preventDefault()
+      return
+    }
+    const tabData = JSON.stringify(tab)
+    console.log('设置拖拽数据:', tabData)
+    event.dataTransfer.setData('text/plain', tabData)
+    event.dataTransfer.effectAllowed = 'move'
+  } catch (error) {
+    console.error('设置拖拽数据失败:', error)
+    event.preventDefault()
+  }
 }
 
 const onDragOver = (event) => {
@@ -586,8 +599,23 @@ const onDrop = (event, groupId) => {
     dropzone.classList.remove('drag-over')
   }
   
-  const tabData = JSON.parse(event.dataTransfer.getData('text/plain'))
-  tabStore.moveTabToGroup(tabData.id, groupId)
+  try {
+    const data = event.dataTransfer.getData('text/plain')
+    if (!data) {
+      console.warn('拖拽数据为空')
+      return
+    }
+    
+    const tabData = JSON.parse(data)
+    if (tabData && tabData.id) {
+      tabStore.moveTabToGroup(tabData.id, groupId)
+    } else {
+      console.warn('拖拽数据格式无效:', tabData)
+    }
+  } catch (error) {
+    console.warn('拖拽数据解析失败:', error)
+    console.warn('原始数据:', event.dataTransfer.getData('text/plain'))
+  }
 }
 
 // 初始化
@@ -1731,6 +1759,10 @@ onMounted(async () => {
   background: #f8f9fa;
   transition: all 0.2s ease;
   cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
 }
 
 .empty-group-dropzone:hover {
@@ -1789,6 +1821,10 @@ onMounted(async () => {
   justify-content: center;
   transition: all 0.2s ease;
   cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
 }
 
 .group-dropzone:hover {
