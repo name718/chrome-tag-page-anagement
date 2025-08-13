@@ -305,29 +305,33 @@ onMounted(async () => {
 
 <style scoped>
 .app {
+  width: 500px;
+  max-height: 700px;
+  min-height: 600px;
   display: flex;
   flex-direction: column;
-  height: 100vh;
   background: #f8f9fa;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 16px;
+  padding: 16px 20px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border-bottom: 1px solid #e9ecef;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .title {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   margin: 0;
-  font-size: 18px;
-  font-weight: 600;
+  font-size: 20px;
+  font-weight: 700;
 }
 
 .header-actions {
@@ -338,7 +342,7 @@ onMounted(async () => {
 .main {
   flex: 1;
   overflow-y: auto;
-  padding: 16px;
+  padding: 20px;
 }
 
 .tab-groups {
@@ -359,7 +363,7 @@ onMounted(async () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 16px;
+  padding: 14px 18px;
   background: #f8f9fa;
   cursor: pointer;
   border-bottom: 1px solid #e9ecef;
@@ -378,6 +382,7 @@ onMounted(async () => {
 .group-name {
   font-weight: 600;
   color: #495057;
+  font-size: 15px;
 }
 
 .tab-count {
@@ -391,15 +396,15 @@ onMounted(async () => {
 }
 
 .group-tabs {
-  max-height: 300px;
+  max-height: 350px;
   overflow-y: auto;
 }
 
 .tab-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
+  gap: 10px;
+  padding: 12px 18px;
   cursor: pointer;
   border-bottom: 1px solid #f1f3f4;
   transition: background-color 0.2s;
@@ -422,11 +427,12 @@ onMounted(async () => {
 
 .tab-title {
   flex: 1;
-  font-size: 14px;
+  font-size: 15px;
   color: #495057;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  line-height: 1.4;
 }
 
 .tab-actions {
@@ -463,7 +469,7 @@ onMounted(async () => {
 }
 
 .staging-tabs {
-  max-height: 200px;
+  max-height: 250px;
   overflow-y: auto;
 }
 
@@ -529,14 +535,14 @@ onMounted(async () => {
 .stats-dashboard {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  gap: 12px;
+  gap: 16px;
   max-width: 100%;
 }
 
 .stat-card {
   background: white;
   border-radius: 12px;
-  padding: 16px;
+  padding: 18px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   transition: transform 0.2s ease;
 }
@@ -559,7 +565,7 @@ onMounted(async () => {
 }
 
 .stat-title {
-  font-size: 14px;
+  font-size: 15px;
 }
 
 .stat-content {
@@ -578,8 +584,8 @@ onMounted(async () => {
 
 .gauge-circle {
   position: relative;
-  width: 80px;
-  height: 80px;
+  width: 90px;
+  height: 90px;
 }
 
 .gauge-svg {
@@ -611,7 +617,7 @@ onMounted(async () => {
 }
 
 .gauge-value {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 700;
   color: #667eea;
   line-height: 1;
@@ -662,7 +668,7 @@ onMounted(async () => {
 }
 
 .tab-stat-number {
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 700;
   color: #495057;
   line-height: 1;
@@ -695,7 +701,7 @@ onMounted(async () => {
 }
 
 .group-stat-number {
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 700;
   color: #495057;
   line-height: 1;
@@ -732,11 +738,12 @@ onMounted(async () => {
 }
 
 .btn {
-  padding: 6px 12px;
+  padding: 8px 16px;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 14px;
+  font-weight: 600;
   transition: all 0.2s;
 }
 
@@ -759,8 +766,9 @@ onMounted(async () => {
 }
 
 .btn-small {
-  padding: 4px 8px;
-  font-size: 12px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
 }
 
 .btn-icon {
