@@ -106,10 +106,88 @@
 
     <!-- 统计信息 -->
     <footer class="footer">
-      <div class="stats">
-        <span>总标签: {{ totalTabs }}</span>
-        <span>休眠: {{ dormantTabs }}</span>
-        <span>内存节省: {{ memorySaved }}%</span>
+      <div class="stats-dashboard">
+        <!-- 内存使用表盘 -->
+        <div class="stat-card memory-card">
+          <div class="stat-header">
+            <span class="stat-icon">💾</span>
+            <span class="stat-title">内存使用</span>
+          </div>
+          <div class="stat-content">
+            <div class="memory-gauge">
+              <div class="gauge-circle">
+                <svg class="gauge-svg" viewBox="0 0 120 120">
+                  <circle class="gauge-background" cx="60" cy="60" r="50" />
+                  <circle 
+                    class="gauge-progress" 
+                    cx="60" 
+                    cy="60" 
+                    r="50"
+                    :stroke-dasharray="`${memoryEfficiency * 3.14} 314`"
+                  />
+                </svg>
+                <div class="gauge-center">
+                  <div class="gauge-value">{{ memoryEfficiency }}%</div>
+                  <div class="gauge-label">效率</div>
+                </div>
+              </div>
+            </div>
+            <div class="memory-details">
+              <div class="memory-item">
+                <span class="memory-label">当前使用:</span>
+                <span class="memory-value">{{ estimatedMemoryUsage }}MB</span>
+              </div>
+              <div class="memory-item">
+                <span class="memory-label">已节省:</span>
+                <span class="memory-value saved">{{ estimatedMemorySaved }}MB</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 标签页统计 -->
+        <div class="stat-card tabs-card">
+          <div class="stat-header">
+            <span class="stat-icon">📑</span>
+            <span class="stat-title">标签页</span>
+          </div>
+          <div class="stat-content">
+            <div class="tabs-stats">
+              <div class="tab-stat-item">
+                <div class="tab-stat-number">{{ totalTabs }}</div>
+                <div class="tab-stat-label">总标签</div>
+              </div>
+              <div class="tab-stat-item">
+                <div class="tab-stat-number active">{{ activeTabs }}</div>
+                <div class="tab-stat-label">活跃</div>
+              </div>
+              <div class="tab-stat-item">
+                <div class="tab-stat-number dormant">{{ dormantTabs }}</div>
+                <div class="tab-stat-label">休眠</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 分组统计 -->
+        <div class="stat-card groups-card">
+          <div class="stat-header">
+            <span class="stat-icon">📁</span>
+            <span class="stat-title">分组</span>
+          </div>
+          <div class="stat-content">
+            <div class="groups-stats">
+              <div class="group-stat-item">
+                <div class="group-stat-number">{{ groupCount }}</div>
+                <div class="group-stat-label">分组数</div>
+              </div>
+              <div class="group-stat-item">
+                <div class="group-stat-number staging">{{ stagingCount }}</div>
+                <div class="group-stat-label">暂存</div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </footer>
   </div>
@@ -130,7 +208,13 @@ const stagingTabs = computed(() => tabStore.stagingTabs)
 const snapshots = computed(() => snapshotStore.snapshots)
 const totalTabs = computed(() => tabStore.totalTabs)
 const dormantTabs = computed(() => tabStore.dormantTabs)
+const activeTabs = computed(() => tabStore.activeTabs)
 const memorySaved = computed(() => tabStore.memorySaved)
+const estimatedMemoryUsage = computed(() => tabStore.estimatedMemoryUsage)
+const estimatedMemorySaved = computed(() => tabStore.estimatedMemorySaved)
+const memoryEfficiency = computed(() => tabStore.memoryEfficiency)
+const groupCount = computed(() => tabStore.groupCount)
+const stagingCount = computed(() => tabStore.stagingCount)
 
 // 方法
 const toggleStagingArea = () => {
@@ -437,16 +521,214 @@ onMounted(async () => {
 }
 
 .footer {
-  padding: 12px 16px;
+  padding: 16px;
   background: #f8f9fa;
   border-top: 1px solid #e9ecef;
 }
 
-.stats {
+.stats-dashboard {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+  max-width: 100%;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: transform 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+}
+
+.stat-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-weight: 600;
+  color: #495057;
+}
+
+.stat-icon {
+  font-size: 16px;
+}
+
+.stat-title {
+  font-size: 14px;
+}
+
+.stat-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* 内存表盘样式 */
+.memory-gauge {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.gauge-circle {
+  position: relative;
+  width: 80px;
+  height: 80px;
+}
+
+.gauge-svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.gauge-background {
+  fill: none;
+  stroke: #e9ecef;
+  stroke-width: 8;
+}
+
+.gauge-progress {
+  fill: none;
+  stroke: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  stroke-width: 8;
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.5s ease;
+}
+
+.gauge-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.gauge-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: #667eea;
+  line-height: 1;
+}
+
+.gauge-label {
+  font-size: 10px;
+  color: #6c757d;
+  margin-top: 2px;
+}
+
+.memory-details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.memory-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+}
+
+.memory-label {
+  color: #6c757d;
+}
+
+.memory-value {
+  font-weight: 600;
+  color: #495057;
+}
+
+.memory-value.saved {
+  color: #28a745;
+}
+
+/* 标签页统计样式 */
+.tabs-stats {
   display: flex;
   justify-content: space-around;
-  font-size: 12px;
+  gap: 8px;
+}
+
+.tab-stat-item {
+  text-align: center;
+  flex: 1;
+}
+
+.tab-stat-number {
+  font-size: 20px;
+  font-weight: 700;
+  color: #495057;
+  line-height: 1;
+}
+
+.tab-stat-number.active {
+  color: #28a745;
+}
+
+.tab-stat-number.dormant {
   color: #6c757d;
+}
+
+.tab-stat-label {
+  font-size: 10px;
+  color: #6c757d;
+  margin-top: 4px;
+}
+
+/* 分组统计样式 */
+.groups-stats {
+  display: flex;
+  justify-content: space-around;
+  gap: 8px;
+}
+
+.group-stat-item {
+  text-align: center;
+  flex: 1;
+}
+
+.group-stat-number {
+  font-size: 20px;
+  font-weight: 700;
+  color: #495057;
+  line-height: 1;
+}
+
+.group-stat-number.staging {
+  color: #ffc107;
+}
+
+/* 响应式设计 */
+@media (max-width: 480px) {
+  .stats-dashboard {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  
+  .stat-card {
+    padding: 12px;
+  }
+  
+  .gauge-circle {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .gauge-value {
+    font-size: 14px;
+  }
+  
+  .tab-stat-number,
+  .group-stat-number {
+    font-size: 18px;
+  }
 }
 
 .btn {

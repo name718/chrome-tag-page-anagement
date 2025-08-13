@@ -17,10 +17,45 @@ export const useTabStore = defineStore('tabs', () => {
     return allTabs.value.filter(tab => tab.dormant).length
   })
 
+  const activeTabs = computed(() => {
+    return totalTabs.value - dormantTabs.value
+  })
+
   const memorySaved = computed(() => {
     const total = allTabs.value.length
     const dormant = dormantTabs.value
     return total > 0 ? Math.round((dormant / total) * 100) : 0
+  })
+
+  // 模拟内存使用数据
+  const estimatedMemoryUsage = computed(() => {
+    // 每个活跃标签页约占用 50-200MB，休眠标签页约占用 5-10MB
+    const activeMemory = activeTabs.value * 150 // 平均150MB
+    const dormantMemory = dormantTabs.value * 8 // 平均8MB
+    return Math.round(activeMemory + dormantMemory)
+  })
+
+  const estimatedMemorySaved = computed(() => {
+    // 如果所有标签页都活跃，会占用多少内存
+    const totalMemoryIfActive = totalTabs.value * 150
+    const currentMemory = estimatedMemoryUsage.value
+    return Math.round(totalMemoryIfActive - currentMemory)
+  })
+
+  const memoryEfficiency = computed(() => {
+    const total = totalTabs.value
+    const dormant = dormantTabs.value
+    if (total === 0) return 0
+    // 计算内存效率：休眠标签页占比越高，效率越高
+    return Math.round((dormant / total) * 100)
+  })
+
+  const groupCount = computed(() => {
+    return groups.value.length
+  })
+
+  const stagingCount = computed(() => {
+    return stagingTabs.value.length
   })
 
   // 方法
@@ -331,7 +366,13 @@ export const useTabStore = defineStore('tabs', () => {
     // 计算属性
     totalTabs,
     dormantTabs,
+    activeTabs,
     memorySaved,
+    estimatedMemoryUsage,
+    estimatedMemorySaved,
+    memoryEfficiency,
+    groupCount,
+    stagingCount,
     
     // 方法
     initialize,
