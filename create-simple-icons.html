@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TabTamer Icon Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .icon-container {
+            display: inline-block;
+            margin: 10px;
+            text-align: center;
+        }
+        canvas {
+            border: 1px solid #ddd;
+            background: white;
+        }
+        button {
+            margin: 5px;
+            padding: 8px 16px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #5a6fd8;
+        }
+    </style>
+</head>
+<body>
+    <h1>TabTamer Icon Generator</h1>
+    <p>点击下面的按钮生成不同尺寸的图标，然后右键保存为PNG文件。</p>
+    
+    <div class="icon-container">
+        <canvas id="icon16" width="16" height="16"></canvas>
+        <br>
+        <button onclick="generateIcon(16)">生成 16x16</button>
+        <button onclick="downloadIcon(16)">下载 16x16</button>
+    </div>
+    
+    <div class="icon-container">
+        <canvas id="icon32" width="32" height="32"></canvas>
+        <br>
+        <button onclick="generateIcon(32)">生成 32x32</button>
+        <button onclick="downloadIcon(32)">下载 32x32</button>
+    </div>
+    
+    <div class="icon-container">
+        <canvas id="icon48" width="48" height="48"></canvas>
+        <br>
+        <button onclick="generateIcon(48)">生成 48x48</button>
+        <button onclick="downloadIcon(48)">下载 48x48</button>
+    </div>
+    
+    <div class="icon-container">
+        <canvas id="icon128" width="128" height="128"></canvas>
+        <br>
+        <button onclick="generateIcon(128)">生成 128x128</button>
+        <button onclick="downloadIcon(128)">下载 128x128</button>
+    </div>
+
+    <script>
+        function generateIcon(size) {
+            const canvas = document.getElementById(`icon${size}`);
+            const ctx = canvas.getContext('2d');
+            
+            // 清除画布
+            ctx.clearRect(0, 0, size, size);
+            
+            // 创建渐变背景
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, '#667eea');
+            gradient.addColorStop(1, '#764ba2');
+            
+            // 绘制圆角矩形背景
+            ctx.fillStyle = gradient;
+            roundRect(ctx, 2, 2, size - 4, size - 4, size * 0.2);
+            ctx.fill();
+            
+            // 绘制标签页图标
+            ctx.fillStyle = 'white';
+            const tabWidth = size * 0.6;
+            const tabHeight = size * 0.4;
+            const tabX = (size - tabWidth) / 2;
+            const tabY = (size - tabHeight) / 2;
+            
+            // 绘制标签页形状
+            ctx.beginPath();
+            ctx.moveTo(tabX, tabY + tabHeight);
+            ctx.lineTo(tabX, tabY + tabHeight * 0.3);
+            ctx.lineTo(tabX + tabWidth * 0.2, tabY);
+            ctx.lineTo(tabX + tabWidth * 0.8, tabY);
+            ctx.lineTo(tabX + tabWidth, tabY + tabHeight * 0.3);
+            ctx.lineTo(tabX + tabWidth, tabY + tabHeight);
+            ctx.closePath();
+            ctx.fill();
+            
+            // 绘制标签页内容线
+            ctx.strokeStyle = '#667eea';
+            ctx.lineWidth = size * 0.03;
+            ctx.beginPath();
+            ctx.moveTo(tabX + tabWidth * 0.15, tabY + tabHeight * 0.5);
+            ctx.lineTo(tabX + tabWidth * 0.85, tabY + tabHeight * 0.5);
+            ctx.moveTo(tabX + tabWidth * 0.15, tabY + tabHeight * 0.7);
+            ctx.lineTo(tabX + tabWidth * 0.6, tabY + tabHeight * 0.7);
+            ctx.stroke();
+        }
+        
+        function roundRect(ctx, x, y, width, height, radius) {
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.lineTo(x + width - radius, y);
+            ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+            ctx.lineTo(x + width, y + height - radius);
+            ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+            ctx.lineTo(x + radius, y + height);
+            ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+            ctx.lineTo(x, y + radius);
+            ctx.quadraticCurveTo(x, y, x + radius, y);
+            ctx.closePath();
+        }
+        
+        function downloadIcon(size) {
+            const canvas = document.getElementById(`icon${size}`);
+            const link = document.createElement('a');
+            link.download = `icon${size}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+        
+        // 页面加载时生成所有图标
+        window.onload = function() {
+            generateIcon(16);
+            generateIcon(32);
+            generateIcon(48);
+            generateIcon(128);
+        };
+    </script>
+</body>
+</html>
