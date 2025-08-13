@@ -19,11 +19,24 @@
                 {{ strategy.icon }} {{ strategy.label }}
               </option>
             </select>
-            <span class="strategy-info">当前: {{ tabStore.groupStrategies.find(s => s.value === tabStore.groupStrategy)?.label }}</span>
           </div>
-          <button @click="createSnapshot" class="btn btn-primary">创建快照</button>
-          <button @click="toggleStagingArea" class="btn btn-secondary">{{ stagingAreaVisible ? '收起暂存区' : '打开暂存区' }}</button>
-          <button @click="showHelp = !showHelp" class="btn btn-outline">{{ showHelp ? '关闭说明' : '使用说明' }}</button>
+          <div class="action-buttons">
+            <button @click="createSnapshot" class="btn btn-primary btn-compact tooltip" data-tooltip="创建快照">
+              <svg viewBox="0 0 24 24" fill="currentColor" class="btn-icon">
+                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+              </svg>
+            </button>
+            <button @click="toggleStagingArea" class="btn btn-secondary btn-compact tooltip" :data-tooltip="stagingAreaVisible ? '收起暂存区' : '打开暂存区'">
+              <svg viewBox="0 0 24 24" fill="currentColor" class="btn-icon">
+                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/>
+              </svg>
+            </button>
+            <button @click="showHelp = !showHelp" class="btn btn-outline btn-compact tooltip" :data-tooltip="showHelp ? '关闭说明' : '使用说明'">
+              <svg viewBox="0 0 24 24" fill="currentColor" class="btn-icon">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/>
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
     </header>
@@ -108,7 +121,7 @@
       <div class="tab-groups">
         <div class="groups-header">
           <h3>标签页分组</h3>
-          <button @click="createNewGroup" class="btn btn-outline btn-small">新建分组</button>
+          <button @click="createNewGroup" class="btn btn-outline btn-small tooltip" data-tooltip="新建分组">新建分组</button>
         </div>
         <div v-if="tabGroups.length === 0" class="no-groups">
           <p>暂无分组，请选择分组策略或等待自动分组</p>
@@ -130,8 +143,16 @@
               </div>
             </div>
             <div class="group-actions">
-              <button @click.stop="editGroup(group.id)" class="btn btn-small" title="编辑分组">编辑</button>
-              <button @click.stop="deleteGroup(group.id)" class="btn btn-small" title="删除分组">删除</button>
+              <button @click.stop="editGroup(group.id)" class="group-action-btn edit-btn tooltip" data-tooltip="编辑分组">
+                <svg viewBox="0 0 24 24" fill="currentColor" class="action-icon">
+                  <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                </svg>
+              </button>
+              <button @click.stop="deleteGroup(group.id)" class="group-action-btn delete-btn tooltip" data-tooltip="删除分组">
+                <svg viewBox="0 0 24 24" fill="currentColor" class="action-icon">
+                  <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                </svg>
+              </button>
             </div>
           </div>
           
@@ -157,9 +178,37 @@
                 <span class="tab-url">{{ tab.url }}</span>
               </div>
               <div class="tab-actions">
-                <button @click.stop="toggleTabDormant(tab.id)" class="btn btn-small" :title="tab.dormant ? '唤醒标签页' : '休眠标签页'">{{ tab.dormant ? '唤醒' : '休眠' }}</button>
-                <button @click.stop="moveToStaging(tab.id)" class="btn btn-small" title="移动到暂存区">暂存</button>
+                <button @click.stop="toggleTabDormant(tab.id)" class="tab-action-btn tooltip" :data-tooltip="tab.dormant ? '唤醒标签页' : '休眠标签页'">
+                  <span v-if="tab.dormant" class="action-icon">⏰</span>
+                  <span v-else class="action-icon">💤</span>
+                </button>
+                <button @click.stop="moveToStaging(tab.id)" class="tab-action-btn tooltip" data-tooltip="移动到暂存区">
+                  <span class="action-icon">📦</span>
+                </button>
               </div>
+            </div>
+            <!-- 空分组拖拽区域 -->
+            <div 
+              v-if="group.tabs.length === 0" 
+              class="empty-group-dropzone"
+              @dragover="onDragOver($event)"
+              @dragleave="onDragLeave($event)"
+              @drop="onDrop($event, group.id)"
+            >
+              <div class="dropzone-content">
+                <span class="dropzone-icon">📥</span>
+                <span class="dropzone-text">拖拽标签页到这里</span>
+              </div>
+            </div>
+            <!-- 分组底部拖拽区域 -->
+            <div 
+              v-if="group.tabs.length > 0" 
+              class="group-dropzone"
+              @dragover="onDragOver($event)"
+              @dragleave="onDragLeave($event)"
+              @drop="onDrop($event, group.id)"
+            >
+              <span class="dropzone-text">拖拽到此处添加标签页</span>
             </div>
           </div>
         </div>
@@ -179,7 +228,7 @@
               <p>临时存放的标签页</p>
             </div>
           </div>
-          <button @click="clearStaging" class="btn btn-outline">清空暂存区</button>
+          <button @click="clearStaging" class="btn btn-outline tooltip" data-tooltip="清空暂存区">清空暂存区</button>
         </div>
         <div class="staging-tabs">
           <div 
@@ -197,7 +246,9 @@
               <span class="tab-title">{{ tab.title }}</span>
               <span class="tab-url">{{ tab.url }}</span>
             </div>
-            <button class="btn btn-small" title="恢复标签页">恢复</button>
+            <button class="tab-action-btn tooltip" data-tooltip="恢复标签页">
+              <span class="action-icon">🔄</span>
+            </button>
           </div>
         </div>
       </div>
@@ -271,7 +322,11 @@
               <span class="snapshot-name">{{ snapshot.name }}</span>
               <span class="snapshot-date">{{ formatDate(snapshot.createdAt) }}</span>
             </div>
-            <button @click.stop="deleteSnapshot(snapshot.id)" class="btn btn-small" title="删除快照">删除</button>
+            <button @click.stop="deleteSnapshot(snapshot.id)" class="snapshot-delete-btn tooltip" data-tooltip="删除快照">
+              <svg viewBox="0 0 24 24" fill="currentColor" class="delete-icon">
+                <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+              </svg>
+            </button>
           </div>
         </div>
       </div>
@@ -508,10 +563,29 @@ const onDragStart = (event, tab) => {
 
 const onDragOver = (event) => {
   event.preventDefault()
+  // 添加拖拽悬停效果
+  const dropzone = event.target.closest('.empty-group-dropzone, .group-dropzone')
+  if (dropzone) {
+    dropzone.classList.add('drag-over')
+  }
+}
+
+const onDragLeave = (event) => {
+  // 移除拖拽悬停效果
+  const dropzone = event.target.closest('.empty-group-dropzone, .group-dropzone')
+  if (dropzone) {
+    dropzone.classList.remove('drag-over')
+  }
 }
 
 const onDrop = (event, groupId) => {
   event.preventDefault()
+  // 移除拖拽悬停效果
+  const dropzone = event.target.closest('.empty-group-dropzone, .group-dropzone')
+  if (dropzone) {
+    dropzone.classList.remove('drag-over')
+  }
+  
   const tabData = JSON.parse(event.dataTransfer.getData('text/plain'))
   tabStore.moveTabToGroup(tabData.id, groupId)
 }
@@ -1362,6 +1436,7 @@ onMounted(async () => {
   color: #495057;
   cursor: pointer;
   transition: all 0.2s ease;
+  min-width: 120px;
 }
 
 .strategy-select:hover {
@@ -1374,10 +1449,32 @@ onMounted(async () => {
   box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
 }
 
-.strategy-info {
-  margin-left: 8px;
-  font-size: 12px;
-  color: #6c757d;
+/* 头部按钮组样式 */
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.btn-compact {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.btn-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.btn-compact:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .no-groups {
@@ -1536,6 +1633,361 @@ onMounted(async () => {
   font-size: 16px;
   font-weight: 600;
   color: #495057;
+}
+
+/* 分组操作按钮样式 */
+.group-actions {
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.tab-group:hover .group-actions {
+  opacity: 1;
+}
+
+.group-action-btn {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  color: #6c757d;
+}
+
+.group-action-btn:hover {
+  transform: scale(1.1);
+}
+
+.edit-btn:hover {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.delete-btn:hover {
+  background: #ffebee;
+  color: #d32f2f;
+}
+
+.action-icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* 标签页操作按钮样式 */
+.tab-actions {
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.tab-item:hover .tab-actions {
+  opacity: 1;
+}
+
+.tab-action-btn {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 3px;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  color: #6c757d;
+}
+
+.tab-action-btn:hover {
+  transform: scale(1.1);
+  background: #f8f9fa;
+  color: #495057;
+}
+
+.tab-action-btn:first-child:hover {
+  background: #e8f5e8;
+  color: #28a745;
+}
+
+/* 空分组拖拽区域样式 */
+.empty-group-dropzone {
+  min-height: 80px;
+  border: 2px dashed #dee2e6;
+  border-radius: 8px;
+  margin: 8px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8f9fa;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.empty-group-dropzone:hover {
+  border-color: #007bff;
+  background: #f0f8ff;
+}
+
+.empty-group-dropzone.drag-over {
+  border-color: #28a745;
+  background: #f0fff0;
+  transform: scale(1.02);
+}
+
+.dropzone-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: #6c757d;
+}
+
+.dropzone-icon {
+  font-size: 24px;
+  opacity: 0.6;
+}
+
+.dropzone-text {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.empty-group-dropzone:hover .dropzone-icon,
+.empty-group-dropzone:hover .dropzone-text {
+  opacity: 1;
+  color: #007bff;
+}
+
+.empty-group-dropzone.drag-over .dropzone-icon {
+  opacity: 1;
+  color: #28a745;
+}
+
+.empty-group-dropzone.drag-over .dropzone-text {
+  opacity: 1;
+  color: #28a745;
+}
+
+/* 分组底部拖拽区域样式 */
+.group-dropzone {
+  height: 20px;
+  border: 1px dashed transparent;
+  border-radius: 4px;
+  margin: 4px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.group-dropzone:hover {
+  border-color: #007bff;
+  background: #f0f8ff;
+}
+
+.group-dropzone.drag-over {
+  border-color: #28a745;
+  background: #f0fff0;
+  height: 30px;
+}
+
+.group-dropzone .dropzone-text {
+  font-size: 12px;
+  color: #6c757d;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.group-dropzone:hover .dropzone-text,
+.group-dropzone.drag-over .dropzone-text {
+  opacity: 1;
+  color: #007bff;
+}
+
+.group-dropzone.drag-over .dropzone-text {
+  color: #28a745;
+}
+
+/* 快照删除按钮样式 */
+.snapshot-delete-btn {
+  background: none;
+  border: none;
+  padding: 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #6c757d;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.6;
+}
+
+.snapshot-delete-btn:hover {
+  background: #f8f9fa;
+  color: #dc3545;
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.delete-icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* 快照项目样式优化 */
+.snapshot-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: white;
+}
+
+.snapshot-item:hover {
+  border-color: #007bff;
+  background: #f8f9ff;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.snapshot-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.snapshot-name {
+  display: block;
+  font-weight: 500;
+  color: #495057;
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.snapshot-date {
+  display: block;
+  font-size: 12px;
+  color: #6c757d;
+}
+
+/* 自定义Tooltip样式 */
+.tooltip {
+  position: relative !important;
+}
+
+.tooltip::before {
+  content: attr(data-tooltip) !important;
+  position: absolute !important;
+  bottom: 100% !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  background: rgba(0, 0, 0, 0.9) !important;
+  color: white !important;
+  padding: 6px 10px !important;
+  border-radius: 4px !important;
+  font-size: 12px !important;
+  white-space: nowrap !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  transition: all 0.2s ease !important;
+  z-index: 9999 !important;
+  pointer-events: none !important;
+  margin-bottom: 5px !important;
+  font-weight: normal !important;
+  line-height: 1.2 !important;
+}
+
+.tooltip::after {
+  content: '' !important;
+  position: absolute !important;
+  bottom: 100% !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  border: 4px solid transparent !important;
+  border-top-color: rgba(0, 0, 0, 0.9) !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  transition: all 0.2s ease !important;
+  z-index: 9999 !important;
+  pointer-events: none !important;
+  margin-bottom: 1px !important;
+}
+
+.tooltip:hover::before,
+.tooltip:hover::after {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* 为不同位置的tooltip调整方向 */
+.tooltip.tooltip-bottom::before {
+  bottom: auto;
+  top: 100%;
+  margin-bottom: 0;
+  margin-top: 5px;
+}
+
+.tooltip.tooltip-bottom::after {
+  bottom: auto;
+  top: 100%;
+  border-top-color: transparent;
+  border-bottom-color: rgba(0, 0, 0, 0.8);
+  margin-bottom: 0;
+  margin-top: 1px;
+}
+
+.tooltip.tooltip-left::before {
+  left: auto;
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-bottom: 0;
+  margin-right: 5px;
+}
+
+.tooltip.tooltip-left::after {
+  left: auto;
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  border-top-color: transparent;
+  border-left-color: rgba(0, 0, 0, 0.8);
+  margin-bottom: 0;
+  margin-right: 1px;
+}
+
+.tooltip.tooltip-right::before {
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-bottom: 0;
+  margin-left: 5px;
+}
+
+.tooltip.tooltip-right::after {
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  border-top-color: transparent;
+  border-right-color: rgba(0, 0, 0, 0.8);
+  margin-bottom: 0;
+  margin-left: 1px;
 }
 
 /* 响应式设计 */
