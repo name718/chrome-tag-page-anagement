@@ -90,7 +90,7 @@ const props = defineProps({
 
 <style scoped>
 .stats-section {
-  padding: 12px 10px;
+  padding: 8px 10px;
   background: #f9fafb;
   border-bottom: 1px solid #e5e7eb;
 }
@@ -107,14 +107,14 @@ const props = defineProps({
   background: #ffffff;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
-  padding: 20px;
+  padding: 12px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .overview-card {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 12px;
 }
 
 .stat-header {
@@ -124,39 +124,39 @@ const props = defineProps({
 }
 
 .stat-icon-wrapper {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: #eef2f7;
-  border-radius: 8px;
+  border-radius: 6px;
 }
 
 .stat-icon-svg {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   color: #4f46e5;
 }
 
 .stat-title-group h3 {
   margin: 0;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   color: #111827;
 }
 
 .stat-title-group p {
-  margin: 4px 0 0 0;
-  font-size: 14px;
+  margin: 2px 0 0 0;
+  font-size: 12px;
   color: #6b7280;
 }
 
 .overview-content {
   display: flex;
-  gap: 16px;
+  gap: 12px;
   align-items: center;
-  padding: 12px 0;
+  padding: 8px 0;
   flex-wrap: wrap;
 }
 
@@ -166,7 +166,7 @@ const props = defineProps({
   align-items: center;
   text-align: center;
   background: #ffffff;
-  padding: 12px;
+  padding: 8px;
   border-radius: 6px;
   border: 1px solid #e5e7eb;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -175,27 +175,27 @@ const props = defineProps({
 }
 
 .overview-title {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   color: #6b7280;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .overview-value {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 700;
   color: #111827;
   line-height: 1;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 .overview-details {
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  font-size: 11px;
+  gap: 2px;
+  font-size: 10px;
   color: #6b7280;
 }
 
