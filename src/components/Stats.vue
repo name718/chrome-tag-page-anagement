@@ -90,7 +90,7 @@ const props = defineProps({
 
 <style scoped>
 .stats-section {
-  padding: 16px 12px;
+  padding: 12px 10px;
   background: #f9fafb;
   border-bottom: 1px solid #e5e7eb;
 }
@@ -154,9 +154,9 @@ const props = defineProps({
 
 .overview-content {
   display: flex;
-  gap: 20px;
+  gap: 16px;
   align-items: center;
-  padding: 16px 0;
+  padding: 12px 0;
   flex-wrap: wrap;
 }
 
@@ -166,36 +166,36 @@ const props = defineProps({
   align-items: center;
   text-align: center;
   background: #ffffff;
-  padding: 16px;
-  border-radius: 8px;
+  padding: 12px;
+  border-radius: 6px;
   border: 1px solid #e5e7eb;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  min-width: 120px;
+  min-width: 100px;
   flex: 1;
 }
 
 .overview-title {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: #6b7280;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .overview-value {
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 700;
   color: #111827;
   line-height: 1;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .overview-details {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  font-size: 12px;
+  gap: 3px;
+  font-size: 11px;
   color: #6b7280;
 }
 

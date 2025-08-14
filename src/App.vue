@@ -327,6 +327,17 @@ const handleReorderTabs = ({ groupId, oldIndex, newIndex }) => {
 const handleMoveTabToGroup = ({ tabId, fromGroupId, toGroupId, newIndex }) => {
   // 处理标签页移动到其他分组
   console.log('移动标签页:', { tabId, fromGroupId, toGroupId, newIndex })
+  console.log('参数验证:')
+  console.log('  tabId:', tabId, '(类型:', typeof tabId, ')')
+  console.log('  fromGroupId:', fromGroupId, '(类型:', typeof fromGroupId, ')')
+  console.log('  toGroupId:', toGroupId, '(类型:', typeof toGroupId, ')')
+  console.log('  newIndex:', newIndex, '(类型:', typeof newIndex, ')')
+  
+  if (!toGroupId) {
+    console.log('❌ toGroupId 为空，跳过移动操作')
+    return
+  }
+  
   tabStore.moveTabToGroup(tabId, toGroupId)
 }
 

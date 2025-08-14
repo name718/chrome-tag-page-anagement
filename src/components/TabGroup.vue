@@ -1,88 +1,68 @@
 <template>
-  <div class="tab-group" :class="{ 'is-collapsed': group.collapsed }">
+      <div class="tab-group" :class="{ 'is-collapsed': isCollapsed }">
     <!-- 分组头部 -->
-    <div 
-      class="group-header" 
-      @click="$emit('toggle-collapse', group.id)" 
-      title="点击折叠/展开"
-    >
+    <div class="group-header" @click="$emit('toggle-collapse', group.id)" title="点击折叠/展开">
       <div class="group-info">
         <div class="group-icon-wrapper">
-          <span class="group-icon">{{ group.icon }}</span>
+          <span class="group-icon">{{ groupIcon }}</span>
         </div>
         <div class="group-details">
-          <span class="group-name" :title="group.name">{{ group.name }}</span>
-          <span class="tab-count">{{ group.tabs.length }} 个标签</span>
+          <span class="group-name" :title="groupName">{{ groupName }}</span>
+          <span class="tab-count">{{ tabCount }} 个标签</span>
         </div>
       </div>
-      
+
+
       <div class="group-actions">
         <!-- 拖拽手柄 -->
-        <div 
-          class="drag-handle tooltip" 
-          data-tooltip="拖拽排序分组"
-          ref="dragHandle"
-        >
+        <div class="drag-handle tooltip" data-tooltip="拖拽排序分组" ref="dragHandle">
           <svg viewBox="0 0 24 24" fill="currentColor" class="drag-icon">
-            <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+            <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" />
           </svg>
         </div>
-        
+
         <!-- 编辑按钮 -->
-        <button 
-          @click.stop="$emit('edit', group.id)" 
-          class="group-action-btn edit-btn tooltip" 
-          data-tooltip="编辑分组"
-        >
+        <button @click.stop="$emit('edit', group.id)" class="group-action-btn edit-btn tooltip" data-tooltip="编辑分组">
           <svg viewBox="0 0 24 24" fill="currentColor" class="action-icon">
-            <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+            <path
+              d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
           </svg>
         </button>
-        
+
         <!-- 删除按钮 -->
-        <button 
-          @click.stop="$emit('delete', group.id)" 
-          class="group-action-btn delete-btn tooltip" 
-          data-tooltip="删除分组"
-        >
+        <button @click.stop="$emit('delete', group.id)" class="group-action-btn delete-btn tooltip" data-tooltip="删除分组">
           <svg viewBox="0 0 24 24" fill="currentColor" class="action-icon">
-            <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+            <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
           </svg>
         </button>
       </div>
     </div>
-    
+
     <!-- 分组内容 -->
-    <div class="group-content" v-show="!group.collapsed">
+    <div class="group-content" v-show="!isCollapsed">
       <!-- 标签页列表 -->
-      <div class="group-tabs" ref="tabsContainer">
-        <TabItem
-          v-for="tab in group.tabs"
-          :key="tab.id"
-          :tab="tab"
-          @activate="$emit('activate-tab', $event)"
-          @toggle-dormant="$emit('toggle-dormant', $event)"
-          @move-to-staging="$emit('move-to-staging', $event)"
-        />
+      <div class="group-tabs" ref="tabsContainer" :data-group-id="group.id">
+        <TabItem v-for="tab in groupTabs" :key="tab.id" :tab="tab" @activate="$emit('activate-tab', $event)"
+          @toggle-dormant="$emit('toggle-dormant', $event)" @move-to-staging="$emit('move-to-staging', $event)" />
       </div>
-      
-      <!-- 空分组拖拽区域 -->
-      <div 
-        v-if="group.tabs.length === 0" 
-        class="empty-dropzone"
-        ref="dropzone"
-      >
-        <div class="dropzone-content">
-          <span class="dropzone-icon">📥</span>
-          <span class="dropzone-text">拖拽标签页到这里</span>
-        </div>
-      </div>
+                   <!-- 空分组占位提示 - 始终显示 -->
+      <div v-if="tabCount === 0" class="empty-placeholder" ref="dropzone">
+         <div class="placeholder-content">
+           <div class="placeholder-icon">📁</div>
+           <div class="placeholder-text">
+             <div class="placeholder-title">分组为空</div>
+             <div class="placeholder-subtitle">拖拽标签页到这里或从其他分组移动</div>
+           </div>
+         </div>
+       </div>
     </div>
+
+
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, watch, nextTick, computed } from 'vue'
 import Sortable from 'sortablejs'
 import TabItem from './TabItem.vue'
 
@@ -97,6 +77,13 @@ const props = defineProps({
     required: true
   }
 })
+
+// 使用计算属性确保响应式更新
+const groupTabs = computed(() => props.group.tabs || [])
+const tabCount = computed(() => groupTabs.value.length)
+const groupName = computed(() => props.group.name || '')
+const groupIcon = computed(() => props.group.icon || '📁')
+const isCollapsed = computed(() => props.group.collapsed || false)
 
 // Emits
 const emit = defineEmits([
@@ -122,7 +109,7 @@ let groupSortable = null
 // 初始化标签页排序
 const initTabsSortable = () => {
   if (!tabsContainer.value) return
-  
+
   tabsSortable = Sortable.create(tabsContainer.value, {
     group: 'tabs',
     animation: 150,
@@ -153,7 +140,7 @@ const initTabsSortable = () => {
 // 初始化分组拖拽
 const initGroupSortable = () => {
   if (!dragHandle.value) return
-  
+
   groupSortable = Sortable.create(dragHandle.value, {
     group: 'groups',
     animation: 150,
@@ -174,7 +161,7 @@ const initGroupSortable = () => {
 // 初始化拖拽区域
 const initDropzone = () => {
   if (!dropzone.value) return
-  
+
   Sortable.create(dropzone.value, {
     group: {
       name: 'tabs',
@@ -197,11 +184,22 @@ const initDropzone = () => {
 }
 
 // 监听分组变化
-watch(() => props.group.tabs, () => {
+watch(() => props.group.tabs, (newTabs, oldTabs) => {
+  console.log(`🔍 TabGroup 监听器触发: ${props.group.name}`)
+  console.log(`   旧标签数量: ${oldTabs?.length || 0}`)
+  console.log(`   新标签数量: ${newTabs?.length || 0}`)
+  
   // 重新初始化拖拽区域
   nextTick(() => {
     initDropzone()
   })
+}, { deep: true })
+
+// 监听整个分组对象变化
+watch(() => props.group, (newGroup, oldGroup) => {
+  console.log(`🔍 TabGroup 分组对象监听器触发: ${newGroup.name}`)
+  console.log(`   旧标签数量: ${oldGroup?.tabs?.length || 0}`)
+  console.log(`   新标签数量: ${newGroup?.tabs?.length || 0}`)
 }, { deep: true })
 
 // 生命周期
@@ -363,41 +361,95 @@ onUnmounted(() => {
   margin-bottom: 8px;
 }
 
-.empty-dropzone {
-  padding: 16px;
-  border: 2px dashed #d1d5db;
+.empty-placeholder {
+  padding: 16px 12px;
+  border: 2px dashed #e5e7eb;
   border-radius: 6px;
   text-align: center;
   transition: all 0.2s ease;
-  background: #f9fafb;
-  margin-top: 8px;
-  min-height: 80px;
+  background: #fafafa;
+  margin-top: 6px;
+  min-height: 60px;
   display: flex;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
 }
 
-.empty-dropzone:hover {
-  border-color: #9ca3af;
-  background: #f3f4f6;
+.empty-placeholder:hover {
+  border-color: #d1d5db;
+  background: #f5f5f5;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.dropzone-content {
+.placeholder-content {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
+  max-width: 180px;
 }
 
-.dropzone-icon {
+.placeholder-icon {
   font-size: 24px;
-  color: #9ca3af;
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
 }
 
-.dropzone-text {
+.empty-placeholder:hover .placeholder-icon {
+  opacity: 0.7;
+}
+
+.placeholder-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.placeholder-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 1px;
+}
+
+.placeholder-subtitle {
   font-size: 12px;
   color: #6b7280;
-  font-weight: 500;
+  line-height: 1.3;
+}
+
+/* 休眠分组提示样式 */
+.dormant-placeholder {
+  padding: 14px 12px;
+  border: 2px dashed #fbbf24;
+  border-radius: 6px;
+  text-align: center;
+  transition: all 0.2s ease;
+  background: #fef3c7;
+  margin-top: 6px;
+  min-height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.dormant-placeholder:hover {
+  border-color: #f59e0b;
+  background: #fde68a;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.2);
+}
+
+.dormant-placeholder .placeholder-icon {
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
+}
+
+.dormant-placeholder:hover .placeholder-icon {
+  opacity: 1;
 }
 
 /* Sortable.js 样式 */
@@ -420,15 +472,15 @@ onUnmounted(() => {
   .group-header {
     padding: 10px 12px;
   }
-  
+
   .group-content {
     padding: 10px 12px;
   }
-  
+
   .group-name {
     font-size: 13px;
   }
-  
+
   .tab-count {
     font-size: 11px;
   }

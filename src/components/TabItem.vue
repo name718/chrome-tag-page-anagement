@@ -2,6 +2,7 @@
   <div 
     class="tab-item"
     :class="{ 'is-dormant': tab.dormant }"
+    :data-tab-id="tab.id"
     @click="$emit('activate', tab.id)"
   >
     <div class="tab-favicon-wrapper">

@@ -857,21 +857,105 @@ export const useTabStore = defineStore('tabs', () => {
     saveStagingTabs()
   }
 
-  const moveTabToGroup = (tabId, groupId) => {
-    const tab = allTabs.value.find(t => t.id === tabId)
-    if (!tab) return
+  const moveTabToGroup = async (tabId, groupId) => {
+    console.log('=== moveTabToGroup 开始 ===')
+    console.log('移动标签页:', tabId, '到分组:', groupId)
+    console.log('当前 groups.value 长度:', groups.value.length)
+    
+    // 验证参数
+    if (!tabId) {
+      console.log('❌ tabId 为空，无法移动标签页')
+      return
+    }
+    
+    if (!groupId) {
+      console.log('❌ groupId 为空，无法移动标签页')
+      return
+    }
+    
+    // 从所有分组中查找标签页
+    let tab = null
+    let sourceGroupId = null
+    
+    console.log('开始查找标签页...')
+    for (const group of groups.value) {
+      console.log(`检查分组: ${group.name} (${group.id}), 标签数量: ${group.tabs.length}`)
+      if (group.tabs && Array.isArray(group.tabs)) {
+        console.log(`  标签页IDs: [${group.tabs.map(t => t.id).join(', ')}]`)
+        console.log(`  查找标签页ID: ${tabId} (类型: ${typeof tabId})`)
+        
+        // 详细的查找过程
+        for (let i = 0; i < group.tabs.length; i++) {
+          const t = group.tabs[i]
+          const tabIdNum = Number(tabId)
+          const comparison = t.id === tabIdNum || t.id === tabId
+          console.log(`    检查标签页 ${i}: id=${t.id} (类型: ${typeof t.id}), tabId=${tabId} (类型: ${typeof tabId}), 比较结果: ${comparison}`)
+          if (comparison) {
+            tab = t
+            sourceGroupId = group.id
+            console.log(`✅ 找到标签页 ${tabId} 在分组 ${group.name} (${group.id})`)
+            break
+          }
+        }
+        
+        if (tab) break
+      } else {
+        console.log(`⚠️ 分组 ${group.name} 的 tabs 不是数组:`, group.tabs)
+      }
+    }
+    
+    if (!tab) {
+      console.log('❌ 未找到标签页:', tabId)
+      console.log('当前所有分组中的标签页:')
+      groups.value.forEach((group, index) => {
+        if (group.tabs && Array.isArray(group.tabs)) {
+          console.log(`  分组 ${index}: ${group.name} - ${group.tabs.map(t => t.id).join(', ')}`)
+        } else {
+          console.log(`  分组 ${index}: ${group.name} - tabs 不是数组:`, group.tabs)
+        }
+      })
+      return
+    }
 
-    // 从所有分组中移除
-    groups.value.forEach(group => {
-      group.tabs = group.tabs.filter(t => t.id !== tabId)
+    // 创建新的分组数组，确保响应式更新
+    console.log('开始创建新的分组数组...')
+    const newGroups = groups.value.map(group => {
+      if (group.id === groupId) {
+        // 目标分组：添加标签页
+        const newTabs = [...group.tabs, tab]
+        console.log(`目标分组 ${group.name}: 添加标签页 ${tabId}, 现在有 ${newTabs.length} 个标签页`)
+        return { ...group, tabs: newTabs }
+      } else if (group.id === sourceGroupId) {
+        // 源分组：移除标签页 - 只移除第一个匹配的
+        const tabIdNum = Number(tabId)
+        let removed = false
+        const newTabs = group.tabs.filter(t => {
+          const shouldRemove = !removed && (t.id === tabIdNum || t.id === tabId)
+          if (shouldRemove) {
+            removed = true
+            console.log(`源分组 ${group.name}: 移除标签页 ${t.id} (匹配 ${tabId})`)
+          }
+          return !shouldRemove
+        })
+        console.log(`源分组 ${group.name}: 移除标签页 ${tabId}, 现在有 ${newTabs.length} 个标签页`)
+        return { ...group, tabs: newTabs }
+      } else {
+        // 其他分组：保持不变
+        return { ...group, tabs: [...group.tabs] }
+      }
     })
 
-    // 添加到目标分组
-    const targetGroup = groups.value.find(g => g.id === groupId)
-    if (targetGroup) {
-      targetGroup.tabs.push(tab)
-      saveGroups()
-    }
+    // 强制更新整个 groups 数组
+    console.log('强制更新 groups 数组...')
+    groups.value = newGroups
+    
+    console.log('=== 更新后的分组状态 ===')
+    groups.value.forEach((group, index) => {
+      console.log(`分组 ${index}: ${group.name} (${group.tabs.length} 个标签页)`)
+    })
+    
+    await saveGroups()
+    console.log('=== moveTabToGroup 完成 ===')
   }
 
   const startDormancyMonitor = () => {
