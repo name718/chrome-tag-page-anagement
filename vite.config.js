@@ -4,6 +4,7 @@ import { resolve } from 'path'
 
 export default defineConfig({
   plugins: [vue()],
+  base: './', // 使用相对路径
   build: {
     outDir: 'dist',
     rollupOptions: {

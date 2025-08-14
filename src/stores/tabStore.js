@@ -73,13 +73,78 @@ export const useTabStore = defineStore('tabs', () => {
 
   // 方法
   const initialize = async () => {
+    console.log('=== 开始初始化 ===')
+    
+    // 在页面上显示初始化状态
+    const showStatus = (message) => {
+      console.log(message)
+      // 尝试在页面上显示状态
+      try {
+        const statusDiv = document.getElementById('init-status')
+        if (statusDiv) {
+          statusDiv.textContent = `[TabStore] ${message}`
+        }
+      } catch (e) {
+        // 忽略页面显示错误
+      }
+    }
+    
+    showStatus('开始初始化...')
     await loadTabs()
+    showStatus('标签页加载完成')
     await loadGroups()
+    showStatus('分组数据加载完成')
     await loadStagingTabs()
+    showStatus('暂存区加载完成')
     await loadGroupStrategy()
-    await autoGroupTabs()
+    showStatus('分组策略加载完成')
+    
+    // 检查是否有现有分组数据
+    showStatus('检查现有分组数据...')
+    console.log('=== 检查现有分组数据 ===')
+    console.log('groups.value:', groups.value)
+    console.log('groups.value.length:', groups.value.length)
+    
+    const hasExistingGroups = groups.value.some(group => 
+      group && group.tabs && Array.isArray(group.tabs) && group.tabs.length > 0
+    )
+    
+    console.log('hasExistingGroups:', hasExistingGroups)
+    
+    if (hasExistingGroups) {
+      const msg = '✅ 发现现有分组数据，跳过自动分组'
+      showStatus(msg)
+      console.log(msg)
+      console.log('现有分组详情:')
+      groups.value.forEach((group, index) => {
+        if (group && group.tabs && group.tabs.length > 0) {
+          console.log(`  - ${group.name}: ${group.tabs.length} 个标签页`)
+        }
+      })
+      
+      // 只更新现有分组中的标签页状态
+      const validTabs = allTabs.value.filter(tab => {
+        if (!tab.url) return false
+        return !tab.url.startsWith('chrome://') && 
+               !tab.url.startsWith('chrome-extension://') && 
+               !tab.url.startsWith('about:')
+      })
+      console.log('有效标签页数量:', validTabs.length)
+      await updateExistingGroups(validTabs)
+      showStatus('现有分组更新完成')
+    } else {
+      const msg = '❌ 没有现有分组数据，执行自动分组'
+      showStatus(msg)
+      console.log(msg)
+      console.log('groups.value 详情:', JSON.stringify(groups.value, null, 2))
+      await autoGroupTabs()
+      showStatus('自动分组完成')
+    }
+    
     await syncTabStates() // 同步标签页状态
     startDormancyMonitor()
+    showStatus('初始化完成')
+    console.log('=== 初始化完成 ===')
   }
 
   const loadTabs = async () => {
@@ -114,22 +179,76 @@ export const useTabStore = defineStore('tabs', () => {
 
   const loadGroups = async () => {
     try {
+      console.log('开始加载分组数据...')
+      
+      // 在页面上显示状态
+      const showStatus = (message) => {
+        console.log(message)
+        try {
+          const statusDiv = document.getElementById('init-status')
+          if (statusDiv) {
+            statusDiv.textContent = `[TabStore] ${message}`
+          }
+        } catch (e) {}
+      }
+      
+      showStatus('开始加载分组数据...')
       const result = await chrome.storage.local.get(['tabGroups'])
+      console.log('从存储加载的分组数据:', result)
+      
       const raw = result.tabGroups
+      console.log('原始分组数据:', raw, '类型:', typeof raw, '是否为数组:', Array.isArray(raw))
+      
       if (Array.isArray(raw)) {
         groups.value = raw
+        const msg = `使用数组格式，加载了 ${raw.length} 个分组`
+        console.log(msg)
+        showStatus(msg)
       } else if (raw && typeof raw === 'object') {
         groups.value = Object.values(raw)
+        const msg = `使用对象格式，转换为 ${groups.value.length} 个分组`
+        console.log(msg)
+        showStatus(msg)
       } else {
         groups.value = []
+        const msg = '没有找到分组数据，初始化为空数组'
+        console.log(msg)
+        showStatus(msg)
       }
+      
       // 兜底 tabs 字段
       groups.value = groups.value.map(g => ({
         ...g,
         tabs: Array.isArray(g?.tabs) ? g.tabs : []
       }))
+      
+      console.log('最终分组数据:', groups.value)
+      console.log('分组数量:', groups.value.length)
+      groups.value.forEach((group, index) => {
+        console.log(`分组 ${index}:`, group.name, '标签页数量:', group.tabs.length)
+        if (group.tabs && group.tabs.length > 0) {
+          console.log(`  标签页详情:`, group.tabs.map(tab => `${tab.title} (ID: ${tab.id})`))
+        }
+      })
+      
+      // 验证分组数据的完整性
+      const validGroups = groups.value.filter(group => 
+        group && group.tabs && Array.isArray(group.tabs) && group.tabs.length > 0
+      )
+      const msg = `有效分组数量: ${validGroups.length}`
+      console.log(msg)
+      showStatus(msg)
+      console.log('有效分组:', validGroups.map(g => `${g.name} (${g.tabs.length} 个标签页)`))
     } catch (error) {
-      console.error('加载分组失败:', error)
+      const errorMsg = `加载分组失败: ${error.message}`
+      console.error(errorMsg, error)
+      try {
+        const statusDiv = document.getElementById('init-status')
+        if (statusDiv) {
+          statusDiv.textContent = `[TabStore] ❌ ${errorMsg}`
+          statusDiv.style.background = '#c00'
+        }
+      } catch (e) {}
     }
   }
 
@@ -153,7 +272,19 @@ export const useTabStore = defineStore('tabs', () => {
 
   const saveGroups = async () => {
     try {
+      console.log('=== 保存分组数据 ===')
+      console.log('要保存的分组数据:', groups.value)
+      console.log('分组数量:', groups.value.length)
+      groups.value.forEach((group, index) => {
+        console.log(`分组 ${index}: ${group.name} (${group.tabs.length} 个标签页)`)
+      })
+      
       await chrome.storage.local.set({ tabGroups: groups.value })
+      console.log('分组数据保存成功')
+      
+      // 验证保存是否成功
+      const result = await chrome.storage.local.get(['tabGroups'])
+      console.log('保存后验证数据:', result)
     } catch (error) {
       console.error('保存分组失败:', error)
     }
@@ -191,8 +322,17 @@ export const useTabStore = defineStore('tabs', () => {
   }
 
   const autoGroupTabs = async () => {
-    console.log('autoGroupTabs called, strategy:', groupStrategy.value)
-    console.log('Total tabs:', allTabs.value.length)
+    console.log('=== autoGroupTabs 开始 ===')
+    console.log('当前分组策略:', groupStrategy.value)
+    console.log('当前分组数量:', groups.value.length)
+    console.log('所有标签页数量:', allTabs.value.length)
+    
+    if (groups.value.length > 0) {
+      console.log('现有分组详情:')
+      groups.value.forEach((group, index) => {
+        console.log(`  分组 ${index}: ${group.name} (${group.tabs.length} 个标签页)`)
+      })
+    }
     
     // 过滤掉特殊页面
     const validTabs = allTabs.value.filter(tab => {
@@ -202,7 +342,7 @@ export const useTabStore = defineStore('tabs', () => {
              !tab.url.startsWith('about:')
     })
     
-    console.log('Valid tabs after filtering:', validTabs.length)
+    console.log('过滤后的有效标签页数量:', validTabs.length)
 
     if (groupStrategy.value === 'manual') {
       // 手动分组模式，保持现有分组，但确保所有标签都在分组中
@@ -231,20 +371,35 @@ export const useTabStore = defineStore('tabs', () => {
         }
       })
     } else {
-      // 自动分组模式，重新分组
+      // 自动分组模式，智能分组
       console.log('Using automatic grouping strategy:', groupStrategy.value)
-      groups.value = []
       
-      switch (groupStrategy.value) {
-        case 'domain':
-          await groupByDomain(validTabs)
-          break
-        case 'keyword':
-          await groupByKeyword(validTabs)
-          break
-        case 'time':
-          await groupByTime(validTabs)
-          break
+      // 检查是否需要重新分组
+      const needsRegrouping = shouldRegroupTabs(validTabs)
+      
+      if (needsRegrouping) {
+        console.log('🚨 Tabs changed, regrouping...')
+        console.log('🚨 清空前分组数量:', groups.value.length)
+        console.log('🚨 清空前分组详情:', groups.value.map(g => `${g.name} (${g.tabs.length} 个标签页)`))
+        
+        groups.value = []
+        console.log('🚨 分组已清空! groups.value.length =', groups.value.length)
+        
+        switch (groupStrategy.value) {
+          case 'domain':
+            await groupByDomain(validTabs)
+            break
+          case 'keyword':
+            await groupByKeyword(validTabs)
+            break
+          case 'time':
+            await groupByTime(validTabs)
+            break
+        }
+      } else {
+        console.log('✅ Tabs unchanged, keeping existing groups')
+        // 保持现有分组，只更新标签页状态
+        await updateExistingGroups(validTabs)
       }
     }
 
@@ -434,6 +589,117 @@ export const useTabStore = defineStore('tabs', () => {
       'jd.com': '🛒'
     }
     return iconMap[domain] || '🌐'
+  }
+
+  // 检查是否需要重新分组
+  const shouldRegroupTabs = (currentTabs) => {
+    console.log('=== shouldRegroupTabs 检查 ===')
+    console.log('现有分组数量:', groups.value.length)
+    console.log('当前标签页数量:', currentTabs.length)
+    
+    // 如果没有现有分组，需要分组
+    if (groups.value.length === 0) {
+      console.log('❌ 没有现有分组，需要重新分组')
+      return true
+    }
+
+    // 检查现有分组中是否有有效数据
+    console.log('检查现有分组的有效性...')
+    groups.value.forEach((group, index) => {
+      console.log(`  分组 ${index}: ${group.name}`)
+      console.log(`    - 存在: ${!!group}`)
+      console.log(`    - tabs存在: ${!!group.tabs}`)
+      console.log(`    - tabs是数组: ${Array.isArray(group.tabs)}`)
+      console.log(`    - tabs长度: ${group.tabs ? group.tabs.length : 'undefined'}`)
+      if (group.tabs && group.tabs.length > 0) {
+        console.log(`    - 标签页: ${group.tabs.map(tab => `${tab.title} (ID: ${tab.id})`).join(', ')}`)
+      }
+    })
+    
+    const hasValidGroups = groups.value.some(group => 
+      group && group.tabs && Array.isArray(group.tabs) && group.tabs.length > 0
+    )
+    
+    console.log('hasValidGroups:', hasValidGroups)
+    
+    if (!hasValidGroups) {
+      console.log('❌ 现有分组中没有有效数据，需要重新分组')
+      return true
+    }
+
+    // 如果现有分组中有有效数据，优先保持现有分组
+    console.log('✅ 现有分组中有有效数据，优先保持现有分组')
+    return false
+  }
+
+  // 更新现有分组中的标签页状态
+  const updateExistingGroups = async (currentTabs) => {
+    console.log('=== updateExistingGroups 开始 ===')
+    console.log('当前标签页数量:', currentTabs.length)
+    console.log('现有分组数量:', groups.value.length)
+    
+    const currentTabMap = new Map(currentTabs.map(tab => [tab.id, tab]))
+    console.log('当前标签页ID列表:', Array.from(currentTabMap.keys()))
+    
+    let totalTabsBefore = 0
+    let totalTabsAfter = 0
+    
+    groups.value.forEach(group => {
+      const beforeCount = group.tabs.length
+      totalTabsBefore += beforeCount
+      
+      group.tabs = group.tabs.filter(tab => {
+        // 移除已关闭的标签页
+        if (!currentTabMap.has(tab.id)) {
+          console.log(`标签页 ${tab.title} (ID: ${tab.id}) 已关闭，从分组 ${group.name} 中移除`)
+          return false
+        }
+        
+        // 更新标签页信息
+        const currentTab = currentTabMap.get(tab.id)
+        Object.assign(tab, currentTab)
+        return true
+      })
+      
+      const afterCount = group.tabs.length
+      totalTabsAfter += afterCount
+      
+      if (beforeCount !== afterCount) {
+        console.log(`分组 ${group.name}: ${beforeCount} -> ${afterCount} 个标签页`)
+      }
+    })
+    
+    console.log(`标签页总数变化: ${totalTabsBefore} -> ${totalTabsAfter}`)
+    
+    // 将新标签页添加到暂存区
+    const existingTabIds = new Set()
+    groups.value.forEach(group => {
+      group.tabs.forEach(tab => existingTabIds.add(tab.id))
+    })
+    
+    const newTabs = currentTabs.filter(tab => !existingTabIds.has(tab.id))
+    if (newTabs.length > 0) {
+      console.log(`发现 ${newTabs.length} 个新标签页，添加到暂存区`)
+      // 确保暂存区存在
+      let stagingGroup = groups.value.find(g => g.id === 'staging')
+      if (!stagingGroup) {
+        stagingGroup = {
+          id: 'staging',
+          name: '未分组',
+          icon: '📌',
+          tabs: [],
+          collapsed: false,
+          type: 'manual',
+          strategy: 'manual'
+        }
+        groups.value.push(stagingGroup)
+        console.log('创建新的暂存区分组')
+      }
+      stagingGroup.tabs.push(...newTabs)
+      console.log('新标签页已添加到暂存区')
+    }
+    
+    console.log('=== updateExistingGroups 完成 ===')
   }
 
   const getKeywordIcon = (keyword) => {
@@ -730,3 +996,4 @@ export const useTabStore = defineStore('tabs', () => {
     saveGroups
   }
 })
+

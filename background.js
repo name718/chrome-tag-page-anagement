@@ -1,12 +1,13 @@
 // Background Service Worker for TabTamer
 
 // 监听扩展安装
-chrome.runtime.onInstalled.addListener((details) => {
+chrome.runtime.onInstalled.addListener(async (details) => {
   console.log('TabTamer 已安装:', details.reason)
   
   if (details.reason === 'install') {
-    // 初始化存储
-    chrome.storage.local.set({
+    // 只在首次安装时初始化存储
+    console.log('首次安装，初始化存储...')
+    await chrome.storage.local.set({
       tabGroups: [],
       stagingTabs: [],
       snapshots: [],
@@ -18,6 +19,27 @@ chrome.runtime.onInstalled.addListener((details) => {
         enableStagingArea: true
       }
     })
+    console.log('存储初始化完成')
+  } else if (details.reason === 'update') {
+    // 更新时，保留现有数据，只添加新的设置项
+    console.log('扩展更新，保留现有数据...')
+    try {
+      const result = await chrome.storage.local.get(['settings'])
+      const currentSettings = result.settings || {}
+      
+      // 只更新设置，不重置数据
+      await chrome.storage.local.set({
+        settings: {
+          autoGrouping: currentSettings.autoGrouping !== undefined ? currentSettings.autoGrouping : true,
+          dormancyThreshold: currentSettings.dormancyThreshold || 30,
+          maxTabsPerWindow: currentSettings.maxTabsPerWindow || 200,
+          enableStagingArea: currentSettings.enableStagingArea !== undefined ? currentSettings.enableStagingArea : true
+        }
+      })
+      console.log('设置更新完成，数据已保留')
+    } catch (error) {
+      console.error('更新设置失败:', error)
+    }
   }
 })
 

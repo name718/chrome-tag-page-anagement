@@ -378,3 +378,287 @@ body {
     padding: 12px;
   }
 }
+
+/* 新增：Tooltip 样式 */
+.tooltip {
+  position: relative !important;
+}
+
+.tooltip::before,
+.tooltip::after {
+  position: fixed !important;
+  z-index: 999999 !important;
+  pointer-events: none !important;
+  will-change: opacity, visibility !important;
+}
+
+.tooltip::before {
+  content: attr(data-tooltip) !important;
+  position: fixed !important;
+  bottom: 100% !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  background: rgba(0, 0, 0, 0.9) !important;
+  color: white !important;
+  padding: 6px 10px !important;
+  border-radius: 4px !important;
+  font-size: 12px !important;
+  white-space: nowrap !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  transition: all 0.2s ease !important;
+  z-index: 999999 !important;
+  pointer-events: none !important;
+  margin-bottom: 5px !important;
+  font-weight: normal !important;
+  line-height: 1.2 !important;
+}
+
+.tooltip::after {
+  content: '' !important;
+  position: fixed !important;
+  bottom: 100% !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  border: 4px solid transparent !important;
+  border-top-color: rgba(0, 0, 0, 0.9) !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  transition: all 0.2s ease !important;
+  z-index: 999999 !important;
+  pointer-events: none !important;
+  margin-bottom: 1px !important;
+}
+
+.tooltip:hover::before,
+.tooltip:hover::after {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* 分组操作按钮的特殊tooltip样式 */
+.group-actions .tooltip::before {
+  bottom: 150% !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  white-space: nowrap !important;
+  min-width: max-content !important;
+  z-index: 99999 !important;
+  position: fixed !important;
+  margin-bottom: 10px !important;
+}
+
+.group-actions .tooltip::after {
+  bottom: 150% !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 99999 !important;
+  position: fixed !important;
+  margin-bottom: 6px !important;
+}
+
+/* 拖拽手柄的tooltip */
+.drag-handle.tooltip::before {
+  bottom: 150% !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 99999 !important;
+  position: fixed !important;
+  margin-bottom: 10px !important;
+}
+
+.drag-handle.tooltip::after {
+  bottom: 150% !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 99999 !important;
+  position: fixed !important;
+  margin-bottom: 6px !important;
+}
+
+/* 头部按钮的tooltip */
+.header-actions .tooltip::before {
+  bottom: 150% !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 99999 !important;
+  position: fixed !important;
+  margin-bottom: 10px !important;
+}
+
+.header-actions .tooltip::after {
+  bottom: 150% !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 99999 !important;
+  position: fixed !important;
+  margin-bottom: 6px !important;
+}
+
+/* 标签页操作按钮的tooltip */
+.tab-actions .tooltip::before {
+  bottom: 150% !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 99999 !important;
+  position: fixed !important;
+  margin-bottom: 10px !important;
+}
+
+.tab-actions .tooltip::after {
+  bottom: 150% !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 99999 !important;
+  position: fixed !important;
+  margin-bottom: 6px !important;
+}
+
+/* 快照删除按钮的tooltip */
+.snapshot-delete-btn.tooltip::before {
+  bottom: 150% !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 99999 !important;
+  position: fixed !important;
+  margin-bottom: 10px !important;
+}
+
+.snapshot-delete-btn.tooltip::after {
+  bottom: 150% !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 99999 !important;
+  position: fixed !important;
+  margin-bottom: 6px !important;
+}
+
+/* 为不同位置的tooltip调整方向 */
+.tooltip.tooltip-bottom::before {
+  bottom: auto;
+  top: 100%;
+  margin-bottom: 0;
+  margin-top: 5px;
+}
+
+.tooltip.tooltip-bottom::after {
+  bottom: auto;
+  top: 100%;
+  border-top-color: transparent;
+  border-bottom-color: rgba(0, 0, 0, 0.8);
+  margin-bottom: 0;
+  margin-top: 1px;
+}
+
+.tooltip.tooltip-left::before {
+  left: auto;
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-bottom: 0;
+  margin-right: 5px;
+}
+
+.tooltip.tooltip-left::after {
+  left: auto;
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  border-top-color: transparent;
+  border-left-color: rgba(0, 0, 0, 0.8);
+  margin-bottom: 0;
+  margin-right: 1px;
+}
+
+.tooltip.tooltip-right::before {
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-bottom: 0;
+  margin-left: 5px;
+}
+
+.tooltip.tooltip-right::after {
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  border-top-color: transparent;
+  border-right-color: rgba(0, 0, 0, 0.8);
+  margin-bottom: 0;
+  margin-left: 1px;
+}
+
+/* 确保分组操作区域有足够的z-index */
+.group-actions {
+  position: relative !important;
+  z-index: 100 !important;
+}
+
+/* 新增：按钮样式增强 */
+.btn-compact {
+  padding: 0 8px !important;
+  height: 26px !important;
+  font-size: 11px !important;
+}
+
+.btn-outline {
+  background: transparent !important;
+  color: #6b7280 !important;
+  border-color: #6b7280 !important;
+}
+
+.btn-outline:hover {
+  background: #6b7280 !important;
+  color: #ffffff !important;
+}
+
+/* 新增：表单样式 */
+.form-input,
+.form-select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 14px;
+  color: #111827;
+  background: #ffffff;
+}
+
+.form-input:focus,
+.form-select:focus {
+  outline: none;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+/* 新增：图标选择器样式 */
+.icon-selector {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+  gap: 8px;
+}
+
+.icon-option {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  background: #ffffff;
+  cursor: pointer;
+  font-size: 18px;
+  transition: all 0.2s ease;
+}
+
+.icon-option:hover {
+  border-color: #4f46e5;
+  background: #f9fafb;
+}
+
+.icon-option.selected {
+  border-color: #4f46e5;
+  background: #4f46e5;
+  color: #ffffff;
+}

@@ -3,8 +3,26 @@ import { createPinia } from 'pinia'
 import App from './App.vue'
 import './style.css'
 
-const app = createApp(App)
-const pinia = createPinia()
+console.log('🚀 popup.js 开始执行')
 
-app.use(pinia)
-app.mount('#app')
+try {
+  const app = createApp(App)
+  const pinia = createPinia()
+
+  app.use(pinia)
+  
+  console.log('🚀 开始挂载应用...')
+  app.mount('#app')
+  console.log('🚀 应用挂载完成')
+  
+} catch (error) {
+  console.error('❌ popup.js 执行失败:', error)
+  // 在页面上显示错误信息
+  document.body.innerHTML = `
+    <div style="padding: 20px; color: red; font-family: monospace;">
+      <h3>❌ 应用启动失败</h3>
+      <pre>${error.message}</pre>
+      <pre>${error.stack}</pre>
+    </div>
+  `
+}
