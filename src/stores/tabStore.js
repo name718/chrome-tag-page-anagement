@@ -710,7 +710,7 @@ export const useTabStore = defineStore('tabs', () => {
     
     console.log(`标签页总数变化: ${totalTabsBefore} -> ${totalTabsAfter}`)
     
-    // 将新标签页添加到暂存区
+    // 将新标签页按照当前策略分组
     const existingTabIds = new Set()
     groups.value.forEach(group => {
       group.tabs.forEach(tab => existingTabIds.add(tab.id))
@@ -718,24 +718,34 @@ export const useTabStore = defineStore('tabs', () => {
     
     const newTabs = currentTabs.filter(tab => !existingTabIds.has(tab.id))
     if (newTabs.length > 0) {
-      console.log(`发现 ${newTabs.length} 个新标签页，添加到暂存区`)
-      // 确保暂存区存在
-      let stagingGroup = groups.value.find(g => g.id === 'staging')
-      if (!stagingGroup) {
-        stagingGroup = {
-          id: 'staging',
-          name: '未分组',
-          icon: '📌',
-          tabs: [],
-          collapsed: false,
-          type: 'manual',
-          strategy: 'manual'
+      console.log(`发现 ${newTabs.length} 个新标签页，按策略分组`)
+      
+      // 根据当前分组策略对新标签页进行分组
+      if (groupStrategy.value === 'domain') {
+        await groupNewTabsByDomain(newTabs)
+      } else if (groupStrategy.value === 'keyword') {
+        await groupNewTabsByKeyword(newTabs)
+      } else if (groupStrategy.value === 'time') {
+        await groupNewTabsByTime(newTabs)
+      } else {
+        // 手动分组模式，添加到暂存区
+        let stagingGroup = groups.value.find(g => g.id === 'staging')
+        if (!stagingGroup) {
+          stagingGroup = {
+            id: 'staging',
+            name: '未分组',
+            icon: '📌',
+            tabs: [],
+            collapsed: false,
+            type: 'manual',
+            strategy: 'manual'
+          }
+          groups.value.push(stagingGroup)
+          console.log('创建新的暂存区分组')
         }
-        groups.value.push(stagingGroup)
-        console.log('创建新的暂存区分组')
+        stagingGroup.tabs.push(...newTabs)
+        console.log('新标签页已添加到暂存区')
       }
-      stagingGroup.tabs.push(...newTabs)
-      console.log('新标签页已添加到暂存区')
     }
     
     console.log('=== updateExistingGroups 完成 ===')
@@ -1078,6 +1088,161 @@ export const useTabStore = defineStore('tabs', () => {
     
     groups.value = orderedGroups
     await saveGroups()
+  }
+
+  // 新标签页分组方法
+  const groupNewTabsByDomain = async (newTabs) => {
+    console.log('groupNewTabsByDomain called with', newTabs.length, 'new tabs')
+    
+    newTabs.forEach(tab => {
+      try {
+        const url = new URL(tab.url)
+        const domain = url.hostname
+        console.log('Processing new tab:', tab.title, 'domain:', domain)
+        
+        // 查找是否已存在该域名的分组
+        let existingGroup = groups.value.find(g => g.id === `domain_${domain}`)
+        
+        if (existingGroup) {
+          // 添加到现有分组
+          existingGroup.tabs.push(tab)
+          console.log(`新标签页 ${tab.title} 添加到现有分组 ${existingGroup.name}`)
+        } else {
+          // 创建新分组
+          const newGroup = {
+            id: `domain_${domain}`,
+            name: getDomainDisplayName(domain),
+            icon: getDomainIcon(domain),
+            tabs: [tab],
+            collapsed: false,
+            type: 'domain',
+            strategy: 'domain'
+          }
+          groups.value.push(newGroup)
+          console.log(`创建新分组 ${newGroup.name} 并添加标签页 ${tab.title}`)
+        }
+      } catch (error) {
+        console.warn('解析新标签页URL失败:', tab.url)
+        // 将解析失败的标签页添加到暂存区
+        let stagingGroup = groups.value.find(g => g.id === 'staging')
+        if (!stagingGroup) {
+          stagingGroup = {
+            id: 'staging',
+            name: '未分组',
+            icon: '📌',
+            tabs: [],
+            collapsed: false,
+            type: 'manual',
+            strategy: 'manual'
+          }
+          groups.value.push(stagingGroup)
+        }
+        stagingGroup.tabs.push(tab)
+      }
+    })
+  }
+
+  const groupNewTabsByKeyword = async (newTabs) => {
+    console.log('groupNewTabsByKeyword called with', newTabs.length, 'new tabs')
+    const keywords = ['开发', '设计', '文档', '会议', '购物', '娱乐', '学习', '工作']
+    
+    newTabs.forEach(tab => {
+      const matchedKeywords = keywords.filter(keyword => 
+        tab.title.toLowerCase().includes(keyword.toLowerCase()) ||
+        tab.url.toLowerCase().includes(keyword.toLowerCase())
+      )
+
+      if (matchedKeywords.length > 0) {
+        const keyword = matchedKeywords[0] // 取第一个匹配的关键词
+        
+        // 查找是否已存在该关键词的分组
+        let existingGroup = groups.value.find(g => g.id === `keyword_${keyword}`)
+        
+        if (existingGroup) {
+          // 添加到现有分组
+          existingGroup.tabs.push(tab)
+          console.log(`新标签页 ${tab.title} 添加到现有分组 ${existingGroup.name}`)
+        } else {
+          // 创建新分组
+          const newGroup = {
+            id: `keyword_${keyword}`,
+            name: keyword,
+            icon: getKeywordIcon(keyword),
+            tabs: [tab],
+            collapsed: false,
+            type: 'keyword',
+            strategy: 'keyword'
+          }
+          groups.value.push(newGroup)
+          console.log(`创建新分组 ${newGroup.name} 并添加标签页 ${tab.title}`)
+        }
+      } else {
+        // 未匹配的标签放入"其他"分组
+        let otherGroup = groups.value.find(g => g.id === 'keyword_其他')
+        if (!otherGroup) {
+          otherGroup = {
+            id: 'keyword_其他',
+            name: '其他',
+            icon: '📌',
+            tabs: [],
+            collapsed: false,
+            type: 'keyword',
+            strategy: 'keyword'
+          }
+          groups.value.push(otherGroup)
+        }
+        otherGroup.tabs.push(tab)
+        console.log(`新标签页 ${tab.title} 添加到其他分组`)
+      }
+    })
+  }
+
+  const groupNewTabsByTime = async (newTabs) => {
+    console.log('groupNewTabsByTime called with', newTabs.length, 'new tabs')
+    const now = Date.now()
+    const oneHour = 60 * 60 * 1000
+    const oneDay = 24 * oneHour
+    
+    newTabs.forEach(tab => {
+      const timeDiff = now - tab.lastActive
+      let timeKey, groupName, icon
+
+      if (timeDiff < oneHour) {
+        timeKey = 'recent'
+        groupName = '最近1小时'
+        icon = '🕐'
+      } else if (timeDiff < oneDay) {
+        timeKey = 'today'
+        groupName = '今天'
+        icon = '📅'
+      } else {
+        timeKey = 'older'
+        groupName = '更早'
+        icon = '📚'
+      }
+
+      // 查找是否已存在该时间分组
+      let existingGroup = groups.value.find(g => g.id === `time_${timeKey}`)
+      
+      if (existingGroup) {
+        // 添加到现有分组
+        existingGroup.tabs.push(tab)
+        console.log(`新标签页 ${tab.title} 添加到现有分组 ${existingGroup.name}`)
+      } else {
+        // 创建新分组
+        const newGroup = {
+          id: `time_${timeKey}`,
+          name: groupName,
+          icon: icon,
+          tabs: [tab],
+          collapsed: false,
+          type: 'time',
+          strategy: 'time'
+        }
+        groups.value.push(newGroup)
+        console.log(`创建新分组 ${newGroup.name} 并添加标签页 ${tab.title}`)
+      }
+    })
   }
 
   return {
