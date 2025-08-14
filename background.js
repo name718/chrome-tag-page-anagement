@@ -1,3 +1,9 @@
+/**
+ * TabTamer - 智能标签页管理 Chrome 插件
+ * Copyright (c) 2024 TabTamer Team
+ * Licensed under MIT License
+ */
+
 // Background Service Worker for TabTamer
 
 // 监听扩展安装
