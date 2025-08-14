@@ -302,8 +302,8 @@ const clearData = async () => {
   text-align: center;
   margin-bottom: 30px;
   padding: 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+  color: var(--text-inverse);
   border-radius: 12px;
 }
 
@@ -314,16 +314,16 @@ const clearData = async () => {
 }
 
 .settings-section {
-  background: white;
+  background: var(--bg-primary);
   border-radius: 12px;
   padding: 24px;
   margin-bottom: 20px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px var(--shadow-light);
 }
 
 .settings-section h2 {
   margin: 0 0 20px 0;
-  color: #495057;
+  color: var(--text-secondary);
   font-size: 20px;
   font-weight: 600;
 }
@@ -341,19 +341,19 @@ const clearData = async () => {
   align-items: center;
   gap: 8px;
   font-weight: 500;
-  color: #495057;
+  color: var(--text-secondary);
   margin-bottom: 8px;
 }
 
 .setting-label input[type="checkbox"] {
   width: 18px;
   height: 18px;
-  accent-color: #667eea;
+  accent-color: var(--accent-primary);
 }
 
 .setting-description {
   margin: 8px 0 0 0;
-  color: #6c757d;
+  color: var(--text-muted);
   font-size: 14px;
   line-height: 1.4;
 }
@@ -361,16 +361,18 @@ const clearData = async () => {
 .input {
   width: 100%;
   padding: 10px 12px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-secondary);
   border-radius: 8px;
   font-size: 14px;
   transition: all 0.2s ease;
+  background: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 .input:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px var(--shadow-light);
 }
 
 .keyword-inputs {

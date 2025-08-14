@@ -107,9 +107,10 @@ const emit = defineEmits([
   justify-content: space-between;
   align-items: center;
   padding: 8px 12px;
-  background: #ffffff;
-  color: #111827;
-  border-bottom: 1px solid #e5e7eb;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-primary);
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
 .header-content {
@@ -132,7 +133,7 @@ const emit = defineEmits([
   align-items: center; 
   justify-content: center; 
   border-radius: 3px; 
-  background: #eef2f7; 
+  background: var(--bg-tertiary); 
 }
 
 .icon-svg {
@@ -150,7 +151,7 @@ const emit = defineEmits([
 
 .subtitle {
   font-size: 14px;
-  color: #6b7280;
+  color: var(--text-muted);
   font-weight: 300;
   letter-spacing: 0.5px;
 }
@@ -175,19 +176,19 @@ const emit = defineEmits([
   padding: 0 12px; 
   font-size: 12px; 
   font-weight: 500; 
-  border: 1px solid #e5e7eb; 
+  border: 1px solid var(--border-primary); 
   border-radius: 6px; 
   cursor: pointer; 
   transition: all 0.2s ease;
-  background: #ffffff;
-  color: #374151;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+  box-shadow: 0 1px 2px var(--shadow-light);
 }
 
 .btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border-color: #d1d5db;
+  box-shadow: 0 2px 8px var(--shadow-medium);
+  border-color: var(--border-secondary);
 }
 
 .btn:active {
@@ -207,14 +208,14 @@ const emit = defineEmits([
 }
 
 .btn-staging {
-  background: #f3f4f6;
-  color: #374151;
-  border-color: #d1d5db;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  border-color: var(--border-secondary);
 }
 
 .btn-staging:hover {
-  background: #e5e7eb;
-  border-color: #9ca3af;
+  background: var(--border-muted);
+  border-color: var(--text-muted);
 }
 
 .btn-staging.active {

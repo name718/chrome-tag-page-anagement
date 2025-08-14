@@ -6,6 +6,9 @@
 
 <template>
   <div class="app">
+    <!-- 主题切换组件 -->
+    <ThemeToggle />
+    
     <!-- 头部组件 -->
     <Header
       :stagingVisible="stagingAreaVisible"
@@ -166,6 +169,7 @@ import Stats from './components/Stats.vue'
 import TabGroup from './components/TabGroup.vue'
 import StagingArea from './components/StagingArea.vue'
 import Snapshots from './components/Snapshots.vue'
+import ThemeToggle from './components/ThemeToggle.vue'
 
 // 使用 stores
 const tabStore = useTabStore()
@@ -432,14 +436,15 @@ onMounted(async () => {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: #ffffff;
+  background: var(--bg-primary);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   border-radius: 0;
   overflow-y: auto;
   box-shadow: none;
   scrollbar-width: thin;
-  scrollbar-color: #c1c1c1 #f1f1f1;
+  scrollbar-color: var(--border-secondary) var(--bg-tertiary);
   backdrop-filter: none;
+  transition: background-color 0.3s ease;
 }
 
 .app::-webkit-scrollbar {
@@ -447,25 +452,25 @@ onMounted(async () => {
 }
 
 .app::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: var(--bg-tertiary);
   border-radius: 4px;
 }
 
 .app::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
+  background: var(--border-secondary);
   border-radius: 4px;
 }
 
 .app::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+  background: var(--text-muted);
 }
 
 /* 使用说明样式 */
 .help {
   margin: 8px 12px;
   padding: 10px 12px;
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-primary);
   border-radius: 6px;
 }
 
@@ -479,7 +484,7 @@ onMounted(async () => {
 
 .help li {
   font-size: 13px;
-  color: #374151;
+  color: var(--text-secondary);
   line-height: 1.5;
   list-style: disc;
 }
@@ -487,7 +492,7 @@ onMounted(async () => {
 .main {
   flex: 1;
   padding: 16px 12px 24px 12px;
-  background: #f9fafb;
+  background: var(--bg-secondary);
 }
 
 .tab-groups {
@@ -506,7 +511,7 @@ onMounted(async () => {
   margin: 0;
   font-size: 18px;
   font-weight: 600;
-  color: #111827;
+  color: var(--text-primary);
   margin-bottom: 12px;
 }
 
@@ -523,32 +528,32 @@ onMounted(async () => {
 
 .strategy-select {
   padding: 6px 10px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border-primary);
   border-radius: 6px;
   font-size: 12px;
-  background: #ffffff;
-  color: #374151;
+  background: var(--bg-primary);
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 2px var(--shadow-light);
   min-width: 120px;
 }
 
 .strategy-select:hover {
-  border-color: #d1d5db;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-color: var(--border-secondary);
+  box-shadow: 0 2px 4px var(--shadow-medium);
 }
 
 .strategy-select:focus {
   outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px var(--shadow-light);
 }
 
 .no-groups {
   text-align: center;
   padding: 40px 20px;
-  color: #6b7280;
+  color: var(--text-muted);
 }
 
 .no-groups p {
@@ -565,9 +570,9 @@ onMounted(async () => {
   padding: 0 12px;
   font-size: 12px;
   font-weight: 500;
-  color: #fff;
-  background: #4f46e5;
-  border: 1px solid #4f46e5;
+  color: var(--text-inverse);
+  background: var(--accent-primary);
+  border: 1px solid var(--accent-primary);
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -578,14 +583,14 @@ onMounted(async () => {
 }
 
 .btn-primary {
-  background: #007bff;
-  color: white;
+  background: var(--accent-primary);
+  color: var(--text-inverse);
 }
 
 .btn-outline {
   background: transparent;
-  color: #6b7280;
-  border-color: #6b7280;
+  color: var(--text-muted);
+  border-color: var(--text-muted);
 }
 
 .btn-small {
@@ -615,7 +620,7 @@ onMounted(async () => {
 }
 
 .modal-content {
-  background: #ffffff;
+  background: var(--bg-modal);
   border-radius: 8px;
   width: 90%;
   max-width: 500px;
@@ -628,21 +633,21 @@ onMounted(async () => {
   justify-content: space-between;
   align-items: center;
   padding: 20px 24px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border-primary);
 }
 
 .modal-header h3 {
   margin: 0;
   font-size: 18px;
   font-weight: 600;
-  color: #111827;
+  color: var(--text-primary);
 }
 
 .modal-close {
   background: none;
   border: none;
   font-size: 24px;
-  color: #6b7280;
+  color: var(--text-muted);
   cursor: pointer;
   padding: 0;
   width: 32px;
@@ -655,8 +660,8 @@ onMounted(async () => {
 }
 
 .modal-close:hover {
-  background: #f3f4f6;
-  color: #111827;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
 }
 
 .modal-body {
@@ -672,25 +677,25 @@ onMounted(async () => {
   margin-bottom: 8px;
   font-size: 14px;
   font-weight: 500;
-  color: #374151;
+  color: var(--text-secondary);
 }
 
 .form-input,
 .form-select {
   width: 100%;
   padding: 8px 12px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--border-secondary);
   border-radius: 4px;
   font-size: 14px;
-  color: #111827;
-  background: #ffffff;
+  color: var(--text-primary);
+  background: var(--bg-primary);
 }
 
 .form-input:focus,
 .form-select:focus {
   outline: none;
-  border-color: #4f46e5;
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px var(--shadow-light);
 }
 
 .icon-selector {
@@ -705,23 +710,23 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--border-secondary);
   border-radius: 4px;
-  background: #ffffff;
+  background: var(--bg-primary);
   cursor: pointer;
   font-size: 18px;
   transition: all 0.2s ease;
 }
 
 .icon-option:hover {
-  border-color: #4f46e5;
-  background: #f9fafb;
+  border-color: var(--accent-primary);
+  background: var(--bg-tertiary);
 }
 
 .icon-option.selected {
-  border-color: #4f46e5;
-  background: #4f46e5;
-  color: #ffffff;
+  border-color: var(--accent-primary);
+  background: var(--accent-primary);
+  color: var(--text-inverse);
 }
 
 .modal-footer {
@@ -729,7 +734,7 @@ onMounted(async () => {
   justify-content: flex-end;
   gap: 12px;
   padding: 20px 24px;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--border-primary);
 }
 
 

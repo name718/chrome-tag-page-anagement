@@ -97,8 +97,8 @@ const props = defineProps({
 <style scoped>
 .stats-section {
   padding: 8px 10px;
-  background: #f9fafb;
-  border-bottom: 1px solid #e5e7eb;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-primary);
 }
 
 .stats-container {
@@ -110,11 +110,11 @@ const props = defineProps({
 }
 
 .stat-card {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-primary);
   border-radius: 8px;
   padding: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px var(--shadow-light);
 }
 
 .overview-card {
@@ -135,27 +135,27 @@ const props = defineProps({
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #eef2f7;
+  background: var(--bg-tertiary);
   border-radius: 6px;
 }
 
 .stat-icon-svg {
   width: 20px;
   height: 20px;
-  color: #4f46e5;
+  color: var(--accent-primary);
 }
 
 .stat-title-group h3 {
   margin: 0;
   font-size: 16px;
   font-weight: 600;
-  color: #111827;
+  color: var(--text-primary);
 }
 
 .stat-title-group p {
   margin: 2px 0 0 0;
   font-size: 12px;
-  color: #6b7280;
+  color: var(--text-muted);
 }
 
 .overview-content {
@@ -171,11 +171,11 @@ const props = defineProps({
   flex-direction: column;
   align-items: center;
   text-align: center;
-  background: #ffffff;
+  background: var(--bg-primary);
   padding: 8px;
   border-radius: 6px;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--border-primary);
+  box-shadow: 0 1px 3px var(--shadow-light);
   min-width: 100px;
   flex: 1;
 }
@@ -183,7 +183,7 @@ const props = defineProps({
 .overview-title {
   font-size: 12px;
   font-weight: 600;
-  color: #6b7280;
+  color: var(--text-muted);
   margin-bottom: 4px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -192,7 +192,7 @@ const props = defineProps({
 .overview-value {
   font-size: 20px;
   font-weight: 700;
-  color: #111827;
+  color: var(--text-primary);
   line-height: 1;
   margin-bottom: 4px;
 }

@@ -1,4 +1,10 @@
 /*
+  TabTamer - 智能标签页管理 Chrome 插件
+  Copyright (c) 2024 TabTamer Team
+  Licensed under MIT License
+*/
+
+/*
  * TabTamer - 打包脚本
  * 生成带版本号的 zip 包，内容为 dist/ 目录的所有文件（不包含目录层级）
  */

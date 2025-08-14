@@ -69,8 +69,8 @@ const formatDate = (date) => {
 <style scoped>
 .snapshots {
   padding: 16px 12px;
-  background: #f9fafb;
-  border-top: 1px solid #e5e7eb;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-primary);
 }
 
 .snapshots-header {
@@ -89,27 +89,27 @@ const formatDate = (date) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #eef2f7;
+  background: var(--bg-tertiary);
   border-radius: 6px;
 }
 
 .snapshots-icon-svg {
   width: 20px;
   height: 20px;
-  color: #4f46e5;
+  color: var(--accent-primary);
 }
 
 .snapshots-title h3 {
   margin: 0;
   font-size: 16px;
   font-weight: 600;
-  color: #111827;
+  color: var(--text-primary);
 }
 
 .snapshots-title p {
   margin: 2px 0 0 0;
   font-size: 12px;
-  color: #6b7280;
+  color: var(--text-muted);
 }
 
 .snapshot-list {
@@ -123,18 +123,18 @@ const formatDate = (date) => {
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-primary);
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .snapshot-item:hover {
-  background: #f9fafb;
-  border-color: #d1d5db;
+  background: var(--bg-secondary);
+  border-color: var(--border-secondary);
   transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px var(--shadow-medium);
 }
 
 .snapshot-info {
@@ -146,12 +146,12 @@ const formatDate = (date) => {
 .snapshot-name {
   font-size: 14px;
   font-weight: 500;
-  color: #111827;
+  color: var(--text-primary);
 }
 
 .snapshot-date {
   font-size: 12px;
-  color: #6b7280;
+  color: var(--text-muted);
 }
 
 .snapshot-delete-btn {
@@ -173,8 +173,8 @@ const formatDate = (date) => {
 }
 
 .snapshot-delete-btn:hover {
-  background: #fee2e2;
-  color: #dc2626;
+  background: var(--accent-danger);
+  color: var(--text-inverse);
 }
 
 .delete-icon {

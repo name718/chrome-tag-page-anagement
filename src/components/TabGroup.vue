@@ -229,8 +229,8 @@ onUnmounted(() => {
 
 <style scoped>
 .tab-group {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-primary);
   border-radius: 8px;
   margin-bottom: 16px;
   overflow: hidden;
@@ -238,8 +238,8 @@ onUnmounted(() => {
 }
 
 .tab-group:hover {
-  border-color: #d1d5db;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-color: var(--border-secondary);
+  box-shadow: 0 2px 8px var(--shadow-medium);
 }
 
 .group-header {
@@ -247,14 +247,14 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
-  background: #f9fafb;
-  border-bottom: 1px solid #e5e7eb;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-primary);
   cursor: pointer;
   transition: background-color 0.2s ease;
 }
 
 .group-header:hover {
-  background: #f3f4f6;
+  background: var(--bg-tertiary);
 }
 
 .group-info {
@@ -269,7 +269,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #eef2f7;
+  background: var(--bg-tertiary);
   border-radius: 6px;
 }
 
@@ -287,13 +287,13 @@ onUnmounted(() => {
 .group-name {
   font-size: 14px;
   font-weight: 600;
-  color: #111827;
+  color: var(--text-primary);
   line-height: 1.2;
 }
 
 .tab-count {
   font-size: 12px;
-  color: #6b7280;
+  color: var(--text-muted);
   line-height: 1.2;
 }
 
@@ -315,7 +315,7 @@ onUnmounted(() => {
 }
 
 .drag-handle:hover {
-  background: #e5e7eb;
+  background: var(--border-muted);
 }
 
 .drag-handle:active {
@@ -325,7 +325,7 @@ onUnmounted(() => {
 .drag-icon {
   width: 16px;
   height: 16px;
-  color: #6b7280;
+  color: var(--text-muted);
 }
 
 .group-action-btn {
@@ -342,13 +342,13 @@ onUnmounted(() => {
 }
 
 .group-action-btn:hover {
-  background: #e5e7eb;
+  background: var(--border-muted);
 }
 
 .action-icon {
   width: 16px;
   height: 16px;
-  color: #6b7280;
+  color: var(--text-muted);
 }
 
 .edit-btn:hover .action-icon {
@@ -369,11 +369,11 @@ onUnmounted(() => {
 
 .empty-placeholder {
   padding: 16px 12px;
-  border: 2px dashed #e5e7eb;
+  border: 2px dashed var(--border-primary);
   border-radius: 6px;
   text-align: center;
   transition: all 0.2s ease;
-  background: #fafafa;
+  background: var(--bg-tertiary);
   margin-top: 6px;
   min-height: 60px;
   display: flex;
@@ -383,10 +383,10 @@ onUnmounted(() => {
 }
 
 .empty-placeholder:hover {
-  border-color: #d1d5db;
-  background: #f5f5f5;
+  border-color: var(--border-secondary);
+  background: var(--bg-secondary);
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px var(--shadow-medium);
 }
 
 .placeholder-content {
@@ -416,24 +416,24 @@ onUnmounted(() => {
 .placeholder-title {
   font-size: 14px;
   font-weight: 600;
-  color: #374151;
+  color: var(--text-secondary);
   margin-bottom: 1px;
 }
 
 .placeholder-subtitle {
   font-size: 12px;
-  color: #6b7280;
+  color: var(--text-muted);
   line-height: 1.3;
 }
 
 /* 休眠分组提示样式 */
 .dormant-placeholder {
   padding: 14px 12px;
-  border: 2px dashed #fbbf24;
+  border: 2px dashed var(--accent-warning);
   border-radius: 6px;
   text-align: center;
   transition: all 0.2s ease;
-  background: #fef3c7;
+  background: var(--accent-warning);
   margin-top: 6px;
   min-height: 50px;
   display: flex;
@@ -443,10 +443,11 @@ onUnmounted(() => {
 }
 
 .dormant-placeholder:hover {
-  border-color: #f59e0b;
-  background: #fde68a;
+  border-color: var(--accent-warning);
+  background: var(--accent-warning);
+  opacity: 0.9;
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.2);
+  box-shadow: 0 2px 8px var(--shadow-medium);
 }
 
 .dormant-placeholder .placeholder-icon {
@@ -461,11 +462,12 @@ onUnmounted(() => {
 /* Sortable.js 样式 */
 .sortable-ghost {
   opacity: 0.5;
-  background: #e5e7eb;
+  background: var(--border-muted);
 }
 
 .sortable-chosen {
-  background: #dbeafe;
+  background: var(--accent-primary);
+  opacity: 0.1;
 }
 
 .sortable-drag {

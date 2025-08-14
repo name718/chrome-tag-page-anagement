@@ -68,8 +68,8 @@ const emit = defineEmits([
   align-items: center;
   gap: 12px;
   padding: 8px 12px;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-primary);
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -77,15 +77,15 @@ const emit = defineEmits([
 }
 
 .tab-item:hover {
-  background: #f9fafb;
-  border-color: #d1d5db;
+  background: var(--bg-secondary);
+  border-color: var(--border-secondary);
   transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px var(--shadow-medium);
 }
 
 .tab-item.is-dormant {
   opacity: 0.7;
-  background: #f3f4f6;
+  background: var(--bg-tertiary);
 }
 
 .tab-favicon-wrapper {
@@ -114,7 +114,7 @@ const emit = defineEmits([
 .tab-title {
   font-size: 13px;
   font-weight: 500;
-  color: #111827;
+  color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -123,7 +123,7 @@ const emit = defineEmits([
 
 .tab-url {
   font-size: 11px;
-  color: #6b7280;
+  color: var(--text-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -150,14 +150,14 @@ const emit = defineEmits([
   width: 24px;
   height: 24px;
   border: none;
-  background: #f3f4f6;
+  background: var(--bg-tertiary);
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .tab-action-btn:hover {
-  background: #e5e7eb;
+  background: var(--border-muted);
   transform: scale(1.1);
 }
 
