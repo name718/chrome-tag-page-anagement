@@ -10,7 +10,8 @@
     "build:extension": "vite build && npm run copy-manifest",
     "copy-manifest": "cp manifest.json dist/ && cp background.js dist/ && cp content.js dist/ && mkdir -p dist/icons && cp icons/* dist/icons/ && cp dist/src/popup.html dist/ && cp dist/src/options.html dist/",
     "check-license": "node scripts/check-license.js",
-    "prebuild": "npm run check-license"
+    "prebuild": "npm run check-license",
+    "package": "npm run build:extension && node scripts/zip.js"
   },
   "dependencies": {
     "@vueuse/core": "^10.3.0",
