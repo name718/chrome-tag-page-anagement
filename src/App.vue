@@ -672,6 +672,8 @@ onMounted(async () => {
   border-top: 1px solid #e5e7eb;
 }
 
+
+
 /* 响应式设计 */
 @media (max-width: 768px) {
   .main {
