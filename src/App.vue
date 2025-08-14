@@ -8,7 +8,6 @@
   <div class="app">
     <!-- 头部组件 -->
     <Header
-      v-model:groupStrategy="tabStore.groupStrategy"
       :stagingVisible="stagingAreaVisible"
       :showHelp="showHelp"
       @create-snapshot="createSnapshot"
@@ -46,9 +45,28 @@
         <!-- 分组头部 -->
         <div class="groups-header">
           <h3>标签页分组</h3>
-          <button @click="createNewGroup" class="btn btn-outline btn-small tooltip" data-tooltip="新建分组">
-            新建分组
-          </button>
+          <div class="header-left">
+            <!-- 分组策略选择器 -->
+            <div class="strategy-selector">
+              <select 
+                :value="tabStore.groupStrategy" 
+                @change="(e) => tabStore.groupStrategy = e.target.value"
+                class="strategy-select"
+              >
+                <option value="manual">📋 手动分组</option>
+                <option value="domain">🌐 域名分组</option>
+                <option value="keyword">🔍 关键词分组</option>
+                <option value="time">⏰ 时间分组</option>
+              </select>
+            </div>
+            <!-- 新建分组按钮 -->
+            <button @click="createNewGroup" class="btn btn-outline btn-small tooltip" data-tooltip="新建分组">
+              <svg viewBox="0 0 24 24" fill="currentColor" class="btn-icon">
+                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+              </svg>
+              <span>新建分组</span>
+            </button>
+          </div>
         </div>
 
         <!-- 分组列表 -->
@@ -479,16 +497,52 @@ onMounted(async () => {
 
 .groups-header {
   display: flex;
-  justify-content: space-between;
+  /* justify-content: space-between; */
   align-items: center;
   margin-bottom: 20px;
 }
 
-.groups-header h3 {
+.header-left h3 {
   margin: 0;
   font-size: 18px;
   font-weight: 600;
   color: #111827;
+  margin-bottom: 12px;
+}
+
+.header-left {
+  display: flex;
+  /* flex-direction: column; */
+  gap: 8px;
+}
+
+.strategy-selector {
+  display: flex;
+  align-items: center;
+}
+
+.strategy-select {
+  padding: 6px 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 12px;
+  background: #ffffff;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  min-width: 120px;
+}
+
+.strategy-select:hover {
+  border-color: #d1d5db;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.strategy-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .no-groups {
@@ -538,6 +592,12 @@ onMounted(async () => {
   height: 28px;
   padding: 0 10px;
   font-size: 11px;
+}
+
+.btn-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
 }
 
 /* 弹窗样式 */
@@ -684,6 +744,17 @@ onMounted(async () => {
     flex-direction: column;
     gap: 12px;
     text-align: center;
+  }
+  
+  .header-left {
+    align-items: center;
+    text-align: center;
+  }
+  
+  .strategy-select {
+    min-width: auto;
+    width: 100%;
+    max-width: 200px;
   }
   
   .help ul {

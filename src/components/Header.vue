@@ -18,26 +18,9 @@
         <span class="subtitle">智能标签页管理</span>
       </div>
 
-      <!-- 右侧操作区 -->
-      <div class="header-actions">
-        <!-- 分组策略选择器 -->
-        <div class="strategy-selector">
-          <select 
-            :value="groupStrategy" 
-            @change="onStrategyChange"
-            class="strategy-select"
-          >
-            <option 
-              v-for="strategy in groupStrategies" 
-              :key="strategy.value" 
-              :value="strategy.value"
-            >
-              {{ strategy.icon }} {{ strategy.label }}
-            </option>
-          </select>
-        </div>
-
-        <!-- 操作按钮 -->
+              <!-- 右侧操作区 -->
+        <div class="header-actions">
+          <!-- 操作按钮 -->
         <div class="action-buttons">
           <button 
             @click="$emit('create-snapshot')" 
@@ -98,10 +81,6 @@ import { computed } from 'vue'
 
 // Props
 const props = defineProps({
-  groupStrategy: {
-    type: String,
-    required: true
-  },
   stagingVisible: {
     type: Boolean,
     default: false
@@ -114,24 +93,12 @@ const props = defineProps({
 
 // Emits
 const emit = defineEmits([
-  'update:groupStrategy',
   'create-snapshot',
   'toggle-staging',
   'toggle-help'
 ])
 
-// 分组策略选项
-const groupStrategies = [
-  { value: 'domain', label: '按域名', icon: '🌐' },
-  { value: 'keyword', label: '按关键词', icon: '🏷️' },
-  { value: 'time', label: '按时间', icon: '⏰' },
-  { value: 'manual', label: '手动分组', icon: '✋' }
-]
 
-// 策略变化处理
-const onStrategyChange = () => {
-  emit('update:groupStrategy', props.groupStrategy)
-}
 </script>
 
 <style scoped>
@@ -193,32 +160,7 @@ const onStrategyChange = () => {
   gap: 6px;
 }
 
-.strategy-selector {
-  margin-right: 8px;
-}
 
-.strategy-select {
-  padding: 6px 10px;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  font-size: 12px;
-  background: #ffffff;
-  color: #374151;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-}
-
-.strategy-select:hover {
-  border-color: #d1d5db;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.strategy-select:focus {
-  outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
 
 .action-buttons {
   display: flex;
