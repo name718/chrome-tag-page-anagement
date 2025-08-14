@@ -105,8 +105,13 @@ export const useTabStore = defineStore('tabs', () => {
     console.log('groups.value:', groups.value)
     console.log('groups.value.length:', groups.value.length)
     
+    // 更宽松的检查：只要分组存在且结构正确，就认为有现有分组
     const hasExistingGroups = groups.value.some(group => 
-      group && group.tabs && Array.isArray(group.tabs) && group.tabs.length > 0
+      group && 
+      group.id && 
+      group.name && 
+      group.tabs && 
+      Array.isArray(group.tabs)
     )
     
     console.log('hasExistingGroups:', hasExistingGroups)
@@ -117,7 +122,7 @@ export const useTabStore = defineStore('tabs', () => {
       console.log(msg)
       console.log('现有分组详情:')
       groups.value.forEach((group, index) => {
-        if (group && group.tabs && group.tabs.length > 0) {
+        if (group && group.tabs) {
           console.log(`  - ${group.name}: ${group.tabs.length} 个标签页`)
         }
       })
@@ -216,9 +221,14 @@ export const useTabStore = defineStore('tabs', () => {
         showStatus(msg)
       }
       
-      // 兜底 tabs 字段
+      // 兜底 tabs 字段，并确保所有必要字段都存在
       groups.value = groups.value.map(g => ({
-        ...g,
+        id: g.id || `group_${Date.now()}`,
+        name: g.name || '未命名分组',
+        icon: g.icon || '📁',
+        type: g.type || 'manual',
+        strategy: g.strategy || 'manual',
+        collapsed: g.collapsed || false,
         tabs: Array.isArray(g?.tabs) ? g.tabs : []
       }))
       
@@ -279,7 +289,31 @@ export const useTabStore = defineStore('tabs', () => {
         console.log(`分组 ${index}: ${group.name} (${group.tabs.length} 个标签页)`)
       })
       
-      await chrome.storage.local.set({ tabGroups: groups.value })
+      // 将 Vue 响应式对象转换为普通对象，避免保存响应式代理
+      const plainGroups = groups.value.map(group => ({
+        id: group.id,
+        name: group.name,
+        icon: group.icon,
+        type: group.type,
+        strategy: group.strategy,
+        collapsed: group.collapsed,
+        tabs: group.tabs.map(tab => ({
+          id: tab.id,
+          title: tab.title,
+          url: tab.url,
+          favIconUrl: tab.favIconUrl,
+          discarded: tab.discarded,
+          dormant: tab.dormant,
+          lastActive: tab.lastActive,
+          active: tab.active,
+          pinned: tab.pinned,
+          index: tab.index,
+          windowId: tab.windowId
+        }))
+      }))
+      
+      console.log('转换后的普通对象:', plainGroups)
+      await chrome.storage.local.set({ tabGroups: plainGroups })
       console.log('分组数据保存成功')
       
       // 验证保存是否成功
@@ -616,19 +650,24 @@ export const useTabStore = defineStore('tabs', () => {
       }
     })
     
+    // 更宽松的检查：只要分组存在且结构正确，就认为有效
     const hasValidGroups = groups.value.some(group => 
-      group && group.tabs && Array.isArray(group.tabs) && group.tabs.length > 0
+      group && 
+      group.id && 
+      group.name && 
+      group.tabs && 
+      Array.isArray(group.tabs)
     )
     
     console.log('hasValidGroups:', hasValidGroups)
     
     if (!hasValidGroups) {
-      console.log('❌ 现有分组中没有有效数据，需要重新分组')
+      console.log('❌ 现有分组结构无效，需要重新分组')
       return true
     }
 
-    // 如果现有分组中有有效数据，优先保持现有分组
-    console.log('✅ 现有分组中有有效数据，优先保持现有分组')
+    // 如果现有分组结构有效，优先保持现有分组
+    console.log('✅ 现有分组结构有效，优先保持现有分组')
     return false
   }
 
