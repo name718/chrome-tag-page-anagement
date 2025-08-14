@@ -47,7 +47,7 @@
           <h3>标签页分组</h3>
           <div class="header-left">
             <!-- 分组策略选择器 -->
-            <div class="strategy-selector">
+            <!-- <div class="strategy-selector">
               <select 
                 :value="tabStore.groupStrategy" 
                 @change="(e) => tabStore.groupStrategy = e.target.value"
@@ -58,7 +58,7 @@
                 <option value="keyword">🔍 关键词分组</option>
                 <option value="time">⏰ 时间分组</option>
               </select>
-            </div>
+            </div> -->
             <!-- 新建分组按钮 -->
             <button @click="createNewGroup" class="btn btn-outline btn-small tooltip" data-tooltip="新建分组">
               <svg viewBox="0 0 24 24" fill="currentColor" class="btn-icon">
