@@ -7,8 +7,7 @@
 <template>
   <button 
     @click="toggleTheme" 
-    class="theme-toggle tooltip" 
-    :data-tooltip="isDark ? '切换到明亮模式' : '切换到黑暗模式'"
+    class="theme-toggle" 
     :class="{ 'dark': isDark }"
   >
     <!-- 太阳图标 (明亮模式) -->
@@ -93,9 +92,6 @@ watch(isDark, (newValue) => {
 
 <style scoped>
 .theme-toggle {
-  position: fixed;
-  top: 16px;
-  left: 16px;
   width: 40px;
   height: 40px;
   border: none;
@@ -109,7 +105,6 @@ watch(isDark, (newValue) => {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 4px 12px var(--shadow-medium);
   backdrop-filter: blur(10px);
-  z-index: 1000;
 }
 
 .theme-toggle:hover {

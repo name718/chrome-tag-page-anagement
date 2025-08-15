@@ -7,8 +7,7 @@
 <template>
   <button 
     @click="toggleLanguage" 
-    class="language-toggle tooltip" 
-    :data-tooltip="isEnglish ? '切换到中文' : 'Switch to English'"
+    class="language-toggle" 
     :class="{ 'en': isEnglish }"
   >
     <!-- 中文图标 -->
@@ -48,9 +47,6 @@ onMounted(() => {
 
 <style scoped>
 .language-toggle {
-  position: fixed;
-  top: 16px;
-  left: 70px; /* 放在主题切换按钮右侧 */
   width: 40px;
   height: 40px;
   border: none;
@@ -64,7 +60,6 @@ onMounted(() => {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 4px 12px var(--shadow-medium);
   backdrop-filter: blur(10px);
-  z-index: 1000;
   font-weight: 600;
   font-size: 14px;
 }

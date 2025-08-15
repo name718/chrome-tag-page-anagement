@@ -6,14 +6,8 @@
 
 <template>
   <div class="app">
-    <!-- 主题切换组件 -->
-    <ThemeToggle />
-    
-    <!-- 语言切换组件 -->
-    <LanguageToggle />
-    
     <!-- 头部组件 -->
-          <Header 
+    <Header 
         :stagingVisible="stagingAreaVisible" 
         :showHelp="showHelp"
         @create-snapshot="createSnapshot"
@@ -173,8 +167,6 @@ import Stats from './components/Stats.vue'
 import TabGroup from './components/TabGroup.vue'
 import StagingArea from './components/StagingArea.vue'
 import Snapshots from './components/Snapshots.vue'
-import ThemeToggle from './components/ThemeToggle.vue'
-import LanguageToggle from './components/LanguageToggle.vue'
 
 // 使用 stores
 const tabStore = useTabStore()
