@@ -59,6 +59,13 @@
                 <option value="time">⏰ {{ $t('modal.time') }}</option>
               </select>
             </div> -->
+            <!-- 刷新分组按钮 -->
+            <button @click="refreshGroups" class="btn btn-outline btn-small tooltip" :data-tooltip="$t('main.refreshGroupsTooltip')">
+              <svg viewBox="0 0 24 24" fill="currentColor" class="btn-icon">
+                <path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+              </svg>
+              <span>{{ $t('main.refreshGroups') }}</span>
+            </button>
             <!-- 新建分组按钮 -->
             <button @click="createNewGroup" class="btn btn-outline btn-small tooltip" :data-tooltip="$t('main.newGroup')">
               <svg viewBox="0 0 24 24" fill="currentColor" class="btn-icon">
@@ -205,6 +212,8 @@ const $t = (key) => {
       // Main
       'main.tabGroups': '标签页分组',
       'main.newGroup': '新建分组',
+      'main.refreshGroups': '刷新分组',
+      'main.refreshGroupsTooltip': '重新按照当前策略进行分组',
       'main.noGroups': '暂无分组，请选择分组策略或等待自动分组',
       
       // Group
@@ -282,11 +291,16 @@ const $t = (key) => {
       'actions.deleteGroupWarning': '⚠️ 警告：该分组包含 {count} 个标签页',
       'actions.deleteGroupIrreversible': '删除分组将同时关闭所有标签页，此操作不可撤销！',
       'actions.continue': '继续',
+      'actions.refreshGroupsConfirm': '确定要刷新分组吗？',
+      'actions.refreshGroupsWarning': '⚠️ 警告：这将清空所有现有分组！',
+      'actions.refreshGroupsIrreversible': '所有分组将被删除，标签页将重新分组，用户编辑过的分组信息将丢失！',
+      'actions.refreshGroupsSuccess': '分组刷新成功！',
       'actions.enterSnapshotName': '请输入快照名称:',
       'actions.saveFailed': '保存分组失败',
       'actions.deleteFailed': '删除分组失败',
       'actions.snapshotFailed': '创建快照失败',
       'actions.snapshotRestoreFailed': '恢复快照失败',
+      'actions.refreshGroupsFailed': '刷新分组失败',
       
       // Snapshots
       'snapshots.deleteConfirm': '确定要删除这个快照吗？',
@@ -321,6 +335,8 @@ const $t = (key) => {
       // Main
       'main.tabGroups': 'Tab Groups',
       'main.newGroup': 'New Group',
+      'main.refreshGroups': 'Refresh Groups',
+      'main.refreshGroupsTooltip': 'Re-group tabs according to current strategy',
       'main.noGroups': 'No groups yet. Please select a grouping strategy or wait for auto-grouping',
       
       // Group
@@ -398,11 +414,16 @@ const $t = (key) => {
       'actions.deleteGroupWarning': '⚠️ Warning: This group contains {count} tabs',
       'actions.deleteGroupIrreversible': 'Deleting the group will close all tabs. This action cannot be undone!',
       'actions.continue': 'Continue',
+      'actions.refreshGroupsConfirm': 'Are you sure you want to refresh groups?',
+      'actions.refreshGroupsWarning': '⚠️ Warning: This will clear all existing groups!',
+      'actions.refreshGroupsIrreversible': 'All groups will be deleted, tabs will be re-grouped, and user-edited group information will be lost!',
+      'actions.refreshGroupsSuccess': 'Groups refreshed successfully!',
       'actions.enterSnapshotName': 'Please enter snapshot name:',
       'actions.saveFailed': 'Failed to save group',
       'actions.deleteFailed': 'Failed to delete group',
       'actions.snapshotFailed': 'Failed to create snapshot',
       'actions.snapshotRestoreFailed': 'Failed to restore snapshot',
+      'actions.refreshGroupsFailed': 'Failed to refresh groups',
       
       // Snapshots
       'snapshots.deleteConfirm': 'Are you sure you want to delete this snapshot?',
@@ -523,6 +544,51 @@ const deleteGroup = async (groupId) => {
       console.error('删除分组失败:', error)
       alert($t('actions.deleteFailed') + '：' + error.message)
     }
+  }
+}
+
+// 刷新分组功能
+const refreshGroups = async () => {
+  try {
+    console.log('用户点击刷新分组按钮')
+    
+    // 第一步：获取确认信息
+    const result = await tabStore.refreshGroups()
+    
+    if (result.needsConfirmation) {
+      // 显示确认对话框
+      const confirmed = confirm(result.message)
+      
+      if (confirmed) {
+        // 用户确认，执行刷新
+        console.log('用户确认刷新分组，开始执行...')
+        const refreshResult = await tabStore.refreshGroups('CONFIRM_REFRESH_GROUPS')
+        
+        if (refreshResult.success) {
+          alert(refreshResult.message)
+          console.log('分组刷新成功:', refreshResult)
+        } else {
+          throw new Error('刷新分组返回失败状态')
+        }
+      } else {
+        console.log('用户取消刷新分组')
+      }
+    } else {
+      // 直接执行刷新（这种情况不应该发生）
+      console.warn('刷新分组不需要确认，直接执行')
+      const refreshResult = await tabStore.refreshGroups('CONFIRM_REFRESH_GROUPS')
+      
+      if (refreshResult.success) {
+        alert(refreshResult.message)
+        console.log('分组刷新成功:', refreshResult)
+      } else {
+        throw new Error('刷新分组返回失败状态')
+      }
+    }
+    
+  } catch (error) {
+    console.error('刷新分组失败:', error)
+    alert($t('actions.refreshGroupsFailed') + '：' + (error?.message || error))
   }
 }
 

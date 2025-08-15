@@ -235,26 +235,55 @@ export const useTabStore = defineStore('tabs', () => {
         type: g.type || 'manual',
         strategy: g.strategy || 'manual',
         collapsed: g.collapsed || false,
-        tabs: Array.isArray(g?.tabs) ? g.tabs : []
+        tabs: Array.isArray(g?.tabs) ? g.tabs : [],
+        // 添加用户编辑标记，用于判断是否应该保留空分组
+        userEdited: g.userEdited || false
       }))
       
       console.log('最终分组数据:', groups.value)
       console.log('分组数量:', groups.value.length)
       groups.value.forEach((group, index) => {
-        console.log(`分组 ${index}:`, group.name, '标签页数量:', group.tabs.length)
+        console.log(`分组 ${index}:`, group.name, '标签页数量:', group.tabs.length, '用户编辑:', group.userEdited)
         if (group.tabs && group.tabs.length > 0) {
           console.log(`  标签页详情:`, group.tabs.map(tab => `${tab.title} (ID: ${tab.id})`))
         }
       })
       
+      // 过滤掉空的自动分组（除非用户手动编辑过）
+      const filteredGroups = groups.value.filter(group => {
+        // 如果分组有标签页，保留
+        if (group.tabs && group.tabs.length > 0) {
+          return true
+        }
+        
+        // 如果分组没有标签页，但用户编辑过，保留
+        if (group.userEdited) {
+          console.log(`保留空分组 "${group.name}"，因为用户编辑过`)
+          return true
+        }
+        
+        // 如果是手动分组且没有标签页，保留（用户可能故意创建空分组）
+        if (group.type === 'manual') {
+          console.log(`保留空手动分组 "${group.name}"`)
+          return true
+        }
+        
+        // 其他空分组（如空的自动分组）将被过滤掉
+        console.log(`过滤掉空分组 "${group.name}" (类型: ${group.type}, 策略: ${group.strategy})`)
+        return false
+      })
+      
+      groups.value = filteredGroups
+      
       // 验证分组数据的完整性
       const validGroups = groups.value.filter(group => 
         group && group.tabs && Array.isArray(group.tabs) && group.tabs.length > 0
       )
-      const msg = `有效分组数量: ${validGroups.length}`
+      const msg = `有效分组数量: ${validGroups.length}，总分组数量: ${groups.value.length}`
       console.log(msg)
       showStatus(msg)
       console.log('有效分组:', validGroups.map(g => `${g.name} (${g.tabs.length} 个标签页)`))
+      console.log('所有分组:', groups.value.map(g => `${g.name} (${g.tabs.length} 个标签页, 类型: ${g.type}, 用户编辑: ${g.userEdited})`))
     } catch (error) {
       const errorMsg = `加载分组失败: ${error.message}`
       console.error(errorMsg, error)
@@ -292,17 +321,44 @@ export const useTabStore = defineStore('tabs', () => {
       console.log('要保存的分组数据:', groups.value)
       console.log('分组数量:', groups.value.length)
       groups.value.forEach((group, index) => {
-        console.log(`分组 ${index}: ${group.name} (${group.tabs.length} 个标签页)`)
+        console.log(`分组 ${index}: ${group.name} (${group.tabs.length} 个标签页, 用户编辑: ${group.userEdited})`)
       })
       
+      // 在保存前过滤掉空的自动分组（除非用户手动编辑过）
+      const groupsToSave = groups.value.filter(group => {
+        // 如果分组有标签页，保留
+        if (group.tabs && group.tabs.length > 0) {
+          return true
+        }
+        
+        // 如果分组没有标签页，但用户编辑过，保留
+        if (group.userEdited) {
+          console.log(`保存空分组 "${group.name}"，因为用户编辑过`)
+          return true
+        }
+        
+        // 如果是手动分组且没有标签页，保留（用户可能故意创建空分组）
+        if (group.type === 'manual') {
+          console.log(`保存空手动分组 "${group.name}"`)
+          return true
+        }
+        
+        // 其他空分组（如空的自动分组）将被过滤掉，不保存
+        console.log(`不保存空分组 "${group.name}" (类型: ${group.type}, 策略: ${group.strategy})`)
+        return false
+      })
+      
+      console.log(`过滤后保存的分组数量: ${groupsToSave.length}`)
+      
       // 将 Vue 响应式对象转换为普通对象，避免保存响应式代理
-      const plainGroups = groups.value.map(group => ({
+      const plainGroups = groupsToSave.map(group => ({
         id: group.id,
         name: group.name,
         icon: group.icon,
         type: group.type,
         strategy: group.strategy,
         collapsed: group.collapsed,
+        userEdited: group.userEdited || false,
         tabs: group.tabs.map(tab => ({
           id: tab.id,
           title: tab.title,
@@ -403,7 +459,8 @@ export const useTabStore = defineStore('tabs', () => {
               tabs: [],
               collapsed: false,
               type: 'manual',
-              strategy: 'manual'
+              strategy: 'manual',
+              userEdited: false // 自动创建的暂存区分组
             })
           }
           const stagingGroup = groups.value.find(g => g.id === 'staging')
@@ -465,7 +522,8 @@ export const useTabStore = defineStore('tabs', () => {
             tabs: [],
             collapsed: false,
             type: 'domain',
-            strategy: 'domain'
+            strategy: 'domain',
+            userEdited: false // 自动创建的分组默认未编辑
           }
         }
         domainGroups[domain].tabs.push(tab)
@@ -505,7 +563,8 @@ export const useTabStore = defineStore('tabs', () => {
             tabs: [],
             collapsed: false,
             type: 'keyword',
-            strategy: 'keyword'
+            strategy: 'keyword',
+            userEdited: false // 自动创建的分组默认未编辑
           }
         }
         keywordGroups[keyword].tabs.push(tab)
@@ -556,17 +615,18 @@ export const useTabStore = defineStore('tabs', () => {
         icon = '📚'
       }
 
-      if (!timeGroups[timeKey]) {
-        timeGroups[timeKey] = {
-          id: `time_${timeKey}`,
-          name: groupName,
-          icon: icon,
-          tabs: [],
-          collapsed: false,
-          type: 'time',
-          strategy: 'time'
+              if (!timeGroups[timeKey]) {
+          timeGroups[timeKey] = {
+            id: `time_${timeKey}`,
+            name: groupName,
+            icon: icon,
+            tabs: [],
+            collapsed: false,
+            type: 'time',
+            strategy: 'time',
+            userEdited: false // 自动创建的分组默认未编辑
+          }
         }
-      }
       timeGroups[timeKey].tabs.push(tab)
     })
 
@@ -590,10 +650,10 @@ export const useTabStore = defineStore('tabs', () => {
       tabs: [],
       collapsed: false,
       type: 'manual',
-      strategy: 'manual'
+      strategy: 'manual',
+      userEdited: true // 手动创建的分组标记为用户编辑过
     }
     groups.value.push(newGroup)
-    await saveGroups()
     return newGroup.id
   }
 
@@ -744,7 +804,8 @@ export const useTabStore = defineStore('tabs', () => {
             tabs: [],
             collapsed: false,
             type: 'manual',
-            strategy: 'manual'
+            strategy: 'manual',
+            userEdited: false // 自动创建的暂存区分组
           }
           groups.value.push(stagingGroup)
           console.log('创建新的暂存区分组')
@@ -786,7 +847,8 @@ export const useTabStore = defineStore('tabs', () => {
         ...groups.value[groupIndex],
         name: groupData.name,
         icon: groupData.icon,
-        type: groupData.type
+        type: groupData.type,
+        userEdited: true // 用户编辑过的分组标记为已编辑
       }
       await saveGroups()
     } else {
@@ -1233,7 +1295,8 @@ export const useTabStore = defineStore('tabs', () => {
             tabs: [tab],
             collapsed: false,
             type: 'domain',
-            strategy: 'domain'
+            strategy: 'domain',
+            userEdited: false // 自动创建的分组
           }
           groups.value.push(newGroup)
           console.log(`创建新分组 ${newGroup.name} 并添加标签页 ${tab.title}`)
@@ -1250,7 +1313,8 @@ export const useTabStore = defineStore('tabs', () => {
             tabs: [],
             collapsed: false,
             type: 'manual',
-            strategy: 'manual'
+            strategy: 'manual',
+            userEdited: false // 自动创建的暂存区分组
           }
           groups.value.push(stagingGroup)
         }
@@ -1288,7 +1352,8 @@ export const useTabStore = defineStore('tabs', () => {
             tabs: [tab],
             collapsed: false,
             type: 'keyword',
-            strategy: 'keyword'
+            strategy: 'keyword',
+            userEdited: false // 自动创建的分组
           }
           groups.value.push(newGroup)
           console.log(`创建新分组 ${newGroup.name} 并添加标签页 ${tab.title}`)
@@ -1297,15 +1362,16 @@ export const useTabStore = defineStore('tabs', () => {
         // 未匹配的标签放入"其他"分组
         let otherGroup = groups.value.find(g => g.id === 'keyword_其他')
         if (!otherGroup) {
-          otherGroup = {
-            id: 'keyword_其他',
-            name: '其他',
-            icon: '📌',
-            tabs: [],
-            collapsed: false,
-            type: 'keyword',
-            strategy: 'keyword'
-          }
+                  otherGroup = {
+          id: 'keyword_其他',
+          name: '其他',
+          icon: '📌',
+          tabs: [],
+          collapsed: false,
+          type: 'keyword',
+          strategy: 'keyword',
+          userEdited: false // 自动创建的分组
+        }
           groups.value.push(otherGroup)
         }
         otherGroup.tabs.push(tab)
@@ -1354,12 +1420,128 @@ export const useTabStore = defineStore('tabs', () => {
           tabs: [tab],
           collapsed: false,
           type: 'time',
-          strategy: 'time'
+          strategy: 'time',
+          userEdited: false // 自动创建的分组
         }
         groups.value.push(newGroup)
         console.log(`创建新分组 ${newGroup.name} 并添加标签页 ${tab.title}`)
       }
     })
+  }
+
+  // 刷新分组功能 - 重新按照当前策略进行分组
+  const refreshGroups = async (confirmMessage = null) => {
+    console.log('=== refreshGroups 开始 ===')
+    console.log('当前分组策略:', groupStrategy.value)
+    console.log('当前分组数量:', groups.value.length)
+    console.log('所有标签页数量:', allTabs.value.length)
+    
+    // 如果没有确认消息，返回需要确认
+    if (!confirmMessage) {
+      return {
+        needsConfirmation: true,
+        message: `确定要重新按照"${getStrategyDisplayName(groupStrategy.value)}"策略进行分组吗？\n\n⚠️ 警告：这将清空所有现有分组，包括：\n• 当前所有分组将被删除\n• 所有标签页将重新分组\n• 用户编辑过的分组信息将丢失\n\n此操作不可撤销！`
+      }
+    }
+    
+    // 验证确认消息
+    if (confirmMessage !== 'CONFIRM_REFRESH_GROUPS') {
+      throw new Error('确认消息无效')
+    }
+    
+    try {
+      console.log('🚨 用户确认刷新分组，开始清空现有分组...')
+      
+      // 备份当前分组信息（用于日志）
+      const oldGroups = groups.value.map(g => ({
+        name: g.name,
+        type: g.type,
+        tabCount: g.tabs.length,
+        userEdited: g.userEdited
+      }))
+      
+      console.log('清空前分组详情:', oldGroups)
+      
+      // 清空所有分组
+      groups.value = []
+      console.log('🚨 所有分组已清空! groups.value.length =', groups.value.length)
+      
+      // 过滤有效标签页
+      const validTabs = allTabs.value.filter(tab => {
+        if (!tab.url) return false
+        return !tab.url.startsWith('chrome://') && 
+               !tab.url.startsWith('chrome-extension://') && 
+               !tab.url.startsWith('about:')
+      })
+      
+      console.log('有效标签页数量:', validTabs.length)
+      
+      // 按照当前策略重新分组
+      switch (groupStrategy.value) {
+        case 'domain':
+          console.log('使用域名策略重新分组...')
+          await groupByDomain(validTabs)
+          break
+        case 'keyword':
+          console.log('使用关键词策略重新分组...')
+          await groupByKeyword(validTabs)
+          break
+        case 'time':
+          console.log('使用时间策略重新分组...')
+          await groupByTime(validTabs)
+          break
+        case 'manual':
+          console.log('使用手动策略，创建暂存区...')
+          // 手动策略：创建暂存区分组
+          const stagingGroup = {
+            id: 'staging',
+            name: '未分组',
+            icon: '📌',
+            tabs: validTabs,
+            collapsed: false,
+            type: 'manual',
+            strategy: 'manual',
+            userEdited: false
+          }
+          groups.value.push(stagingGroup)
+          break
+        default:
+          throw new Error(`未知的分组策略: ${groupStrategy.value}`)
+      }
+      
+      console.log('重新分组完成，新分组数量:', groups.value.length)
+      console.log('新分组详情:', groups.value.map(g => `${g.name} (${g.tabs.length} 个标签页)`))
+      
+      // 保存新的分组
+      await saveGroups()
+      
+      // 同步标签页状态
+      await syncTabStates()
+      
+      console.log('=== refreshGroups 完成 ===')
+      
+      return {
+        success: true,
+        message: `分组刷新成功！\n\n新创建了 ${groups.value.length} 个分组，包含 ${validTabs.length} 个标签页。`,
+        newGroupCount: groups.value.length,
+        newTabCount: validTabs.length
+      }
+      
+    } catch (error) {
+      console.error('刷新分组失败:', error)
+      throw new Error(`刷新分组失败: ${error.message}`)
+    }
+  }
+
+  // 获取策略显示名称
+  const getStrategyDisplayName = (strategy) => {
+    const strategyNames = {
+      'domain': '域名',
+      'keyword': '关键词', 
+      'time': '时间',
+      'manual': '手动'
+    }
+    return strategyNames[strategy] || strategy
   }
 
   return {
@@ -1399,7 +1581,8 @@ export const useTabStore = defineStore('tabs', () => {
     syncTabStates,
     moveGroup,
     reorderGroups,
-    saveGroups
+    saveGroups,
+    refreshGroups
   }
 })
 
