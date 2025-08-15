@@ -1,0 +1,95 @@
+{
+  "app": {
+    "name": "TabTamer",
+    "subtitle": "智能标签页管理",
+    "description": "智能标签页管理Chrome插件"
+  },
+  "header": {
+    "snapshot": "快照",
+    "staging": "暂存",
+    "help": "帮助",
+    "github": "GitHub",
+    "viewSource": "在 GitHub 上查看源代码"
+  },
+  "stats": {
+    "overview": "概览",
+    "memoryAndTabs": "内存与标签/分组",
+    "memoryEfficiency": "内存效率",
+    "tabs": "标签页",
+    "groups": "分组",
+    "active": "活跃",
+    "dormant": "休眠",
+    "staging": "暂存",
+    "used": "使用",
+    "saved": "节省"
+  },
+  "main": {
+    "tabGroups": "标签页分组",
+    "newGroup": "新建分组",
+    "noGroups": "暂无分组，请选择分组策略或等待自动分组",
+    "emptyGroup": "分组为空",
+    "emptyGroupSubtitle": "拖拽标签页到这里或从其他分组移动"
+  },
+  "help": {
+    "title": "使用说明",
+    "clickTab": "点击标签行：激活该标签页",
+    "dormant": "休眠/唤醒：将标签页休眠以节省内存，或恢复使用",
+    "staging": "暂存：将标签页移入暂存区，稍后可从暂存区恢复",
+    "groupTitle": "分组标题：点击可折叠/展开分组",
+    "editDelete": "编辑/删除分组：在分组右侧的"编辑/删除"按钮",
+    "snapshot": "快照：保存当前工作区，稍后可一键恢复"
+  },
+  "snapshots": {
+    "title": "工作区快照",
+    "subtitle": "保存和恢复工作状态",
+    "deleteConfirm": "确定要删除这个快照吗？",
+    "restoreConfirm": "确定要恢复这个工作区快照吗？",
+    "delete": "删除"
+  },
+  "staging": {
+    "title": "暂存区",
+    "subtitle": "临时存储的标签页",
+    "clear": "清空全部",
+    "restore": "恢复全部"
+  },
+  "modal": {
+    "editGroup": "编辑分组",
+    "groupName": "分组名称",
+    "groupIcon": "分组图标",
+    "groupType": "分组类型",
+    "enterGroupName": "输入分组名称",
+    "cancel": "取消",
+    "save": "保存",
+    "manual": "手动分组",
+    "domain": "域名分组",
+    "keyword": "关键词分组",
+    "time": "时间分组"
+  },
+  "actions": {
+    "edit": "编辑",
+    "delete": "删除",
+    "deleteGroupConfirm": "确定要删除分组\"{name}\"吗？",
+    "deleteGroupWarning": "⚠️ 警告：该分组包含 {count} 个标签页",
+    "deleteGroupIrreversible": "删除分组将同时关闭所有标签页，此操作不可撤销！",
+    "continue": "继续",
+    "createSnapshot": "创建快照",
+    "enterSnapshotName": "请输入快照名称:",
+    "snapshotCreated": "快照创建成功",
+    "snapshotFailed": "创建快照失败",
+    "snapshotRestored": "快照恢复成功",
+    "snapshotRestoreFailed": "恢复快照失败"
+  },
+  "theme": {
+    "light": "明亮模式",
+    "dark": "黑暗模式",
+    "switchToLight": "切换到明亮模式",
+    "switchToDark": "切换到黑暗模式",
+    "system": "系统"
+  },
+  "language": {
+    "en": "English",
+    "zh": "中文",
+    "switchToEnglish": "切换到英文",
+    "switchToChinese": "切换到中文"
+  }
+}

@@ -14,16 +14,16 @@
           </svg>
         </div>
         <div>
-          <h3>暂存区</h3>
-          <p>临时存放的标签页</p>
+          <h3>{{ $t('staging.title') }}</h3>
+          <p>{{ $t('staging.subtitle') }}</p>
         </div>
       </div>
       <button 
         @click="$emit('clear-staging')" 
         class="btn btn-outline tooltip" 
-        data-tooltip="清空暂存区"
+        :data-tooltip="$t('staging.clearTooltip')"
       >
-        清空暂存区
+        {{ $t('staging.clear') }}
       </button>
     </div>
     
@@ -45,7 +45,7 @@
           <span class="tab-title">{{ tab.title }}</span>
           <span class="tab-url">{{ tab.url }}</span>
         </div>
-        <button class="tab-action-btn tooltip" data-tooltip="恢复标签页">
+        <button class="tab-action-btn tooltip" :data-tooltip="$t('staging.restore')">
           <span class="action-icon">🔄</span>
         </button>
       </div>
@@ -59,7 +59,8 @@ const props = defineProps({
   stagingTabs: {
     type: Array,
     default: () => []
-  }
+  },
+
 })
 
 // Emits

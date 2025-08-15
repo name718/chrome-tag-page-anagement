@@ -100,21 +100,21 @@ watch(isDark, (newValue) => {
   height: 40px;
   border: none;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.9);
-  color: #374151;
+  background: var(--bg-card);
+  color: var(--text-secondary);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px var(--shadow-medium);
   backdrop-filter: blur(10px);
   z-index: 1000;
 }
 
 .theme-toggle:hover {
   transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 25px var(--shadow-heavy);
 }
 
 .theme-toggle:active {
@@ -122,8 +122,8 @@ watch(isDark, (newValue) => {
 }
 
 .theme-toggle.dark {
-  background: rgba(17, 24, 39, 0.9);
-  color: #f3f4f6;
+  background: var(--bg-card);
+  color: var(--text-secondary);
 }
 
 .theme-icon {

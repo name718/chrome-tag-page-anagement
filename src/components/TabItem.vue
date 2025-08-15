@@ -28,7 +28,7 @@
       <button 
         @click.stop="$emit('toggle-dormant', tab.id)" 
         class="tab-action-btn tooltip" 
-        :data-tooltip="tab.dormant ? '唤醒标签页' : '休眠标签页'"
+        :data-tooltip="tab.dormant ? $t('tab.wakeUp') : $t('tab.sleep')"
       >
         <span v-if="tab.dormant" class="action-icon">⏰</span>
         <span v-else class="action-icon">💤</span>
@@ -37,7 +37,7 @@
       <button 
         @click.stop="$emit('move-to-staging', tab.id)" 
         class="tab-action-btn tooltip" 
-        data-tooltip="移动到暂存区"
+        :data-tooltip="$t('tab.moveToStaging')"
       >
         <span class="action-icon">📦</span>
       </button>
@@ -51,7 +51,8 @@ const props = defineProps({
   tab: {
     type: Object,
     required: true
-  }
+  },
+
 })
 
 // Emits

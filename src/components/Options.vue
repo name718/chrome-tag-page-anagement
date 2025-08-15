@@ -12,7 +12,7 @@
 
     <main class="main">
       <div class="settings-section">
-        <h2>智能分组设置</h2>
+        <h2>{{ $t('options.autoGrouping') }}</h2>
         
         <div class="setting-item">
           <label class="setting-label">
@@ -21,16 +21,16 @@
               v-model="settings.autoGrouping"
               @change="saveSettings"
             />
-            启用自动分组
+            {{ $t('options.autoGrouping') }}
           </label>
           <p class="setting-description">
-            自动根据域名、关键词和时间窗口对标签页进行分组
+            {{ $t('options.autoGroupingDesc') }}
           </p>
         </div>
 
         <div class="setting-item">
           <label class="setting-label">
-            分组关键词
+            {{ $t('options.keywords') }}
           </label>
           <div class="keyword-inputs">
             <input 
@@ -38,23 +38,23 @@
               :key="index"
               v-model="settings.keywords[index]"
               class="input keyword-input"
-              placeholder="输入关键词"
+              :placeholder="$t('options.keywords')"
               @blur="saveSettings"
             />
             <button @click="addKeyword" class="btn btn-secondary">+</button>
           </div>
           <p class="setting-description">
-            包含这些关键词的标签页标题将被自动分组
+            {{ $t('options.keywordsDesc') }}
           </p>
         </div>
       </div>
 
       <div class="settings-section">
-        <h2>休眠设置</h2>
+        <h2>{{ $t('options.dormancyThreshold') }}</h2>
         
         <div class="setting-item">
           <label class="setting-label">
-            休眠阈值（分钟）
+            {{ $t('options.dormancyThreshold') }}
           </label>
           <input 
             type="number" 
@@ -65,7 +65,7 @@
             @change="saveSettings"
           />
           <p class="setting-description">
-            标签页在指定时间内未激活将自动休眠以节省内存
+            {{ $t('options.dormancyThresholdDesc') }}
           </p>
         </div>
 
@@ -76,20 +76,20 @@
               v-model="settings.enableDormancy"
               @change="saveSettings"
             />
-            启用自动休眠
+            {{ $t('options.enableDormancy') }}
           </label>
           <p class="setting-description">
-            自动休眠长时间未使用的标签页
+            {{ $t('options.enableDormancyDesc') }}
           </p>
         </div>
       </div>
 
       <div class="settings-section">
-        <h2>性能设置</h2>
+        <h2>{{ $t('options.maxTabsPerWindow') }}</h2>
         
         <div class="setting-item">
           <label class="setting-label">
-            单窗口最大标签数
+            {{ $t('options.maxTabsPerWindow') }}
           </label>
           <input 
             type="number" 
@@ -100,7 +100,7 @@
             @change="saveSettings"
           />
           <p class="setting-description">
-            超过此数量的标签页将被建议移动到暂存区
+            {{ $t('options.maxTabsPerWindowDesc') }}
           </p>
         </div>
 
@@ -111,20 +111,20 @@
               v-model="settings.enableStagingArea"
               @change="saveSettings"
             />
-            启用暂存区
+            {{ $t('options.enableStagingArea') }}
           </label>
           <p class="setting-description">
-            允许将标签页移动到暂存区以节省主界面空间
+            {{ $t('options.enableStagingAreaDesc') }}
           </p>
         </div>
       </div>
 
       <div class="settings-section">
-        <h2>快照设置</h2>
+        <h2>{{ $t('options.snapshotSettings') }}</h2>
         
         <div class="setting-item">
           <label class="setting-label">
-            最大快照数量
+            {{ $t('options.maxSnapshots') }}
           </label>
           <input 
             type="number" 
@@ -135,7 +135,7 @@
             @change="saveSettings"
           />
           <p class="setting-description">
-            超过此数量的快照将被自动删除（保留最新的）
+            {{ $t('options.maxSnapshotsDesc') }}
           </p>
         </div>
 
@@ -146,27 +146,27 @@
               v-model="settings.autoBackup"
               @change="saveSettings"
             />
-            自动备份快照
+            {{ $t('options.autoBackup') }}
           </label>
           <p class="setting-description">
-            定期自动创建当前工作区的快照
+            {{ $t('options.autoBackupDesc') }}
           </p>
         </div>
       </div>
 
       <div class="settings-section">
-        <h2>数据管理</h2>
+        <h2>{{ $t('options.dataManagement') }}</h2>
         
         <div class="data-actions">
-          <button @click="exportData" class="btn btn-primary">
-            📤 导出数据
-          </button>
-          <button @click="importData" class="btn btn-secondary">
-            📥 导入数据
-          </button>
-          <button @click="clearData" class="btn btn-danger">
-            🗑️ 清除所有数据
-          </button>
+                      <button @click="exportData" class="btn btn-primary">
+              {{ $t('options.exportData') }}
+            </button>
+            <button @click="importData" class="btn btn-secondary">
+              {{ $t('options.importData') }}
+            </button>
+            <button @click="clearData" class="btn btn-danger">
+              {{ $t('options.clearData') }}
+            </button>
         </div>
         
         <input 
@@ -185,6 +185,8 @@
 import { ref, reactive, onMounted } from 'vue'
 
 const fileInput = ref(null)
+
+
 
 const settings = reactive({
   autoGrouping: true,

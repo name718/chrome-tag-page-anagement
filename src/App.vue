@@ -9,24 +9,27 @@
     <!-- 主题切换组件 -->
     <ThemeToggle />
     
+    <!-- 语言切换组件 -->
+    <LanguageToggle />
+    
     <!-- 头部组件 -->
-    <Header
-      :stagingVisible="stagingAreaVisible"
-      :showHelp="showHelp"
-      @create-snapshot="createSnapshot"
-      @toggle-staging="toggleStagingArea"
-      @toggle-help="showHelp = !showHelp"
-    />
+          <Header 
+        :stagingVisible="stagingAreaVisible" 
+        :showHelp="showHelp"
+        @create-snapshot="createSnapshot"
+        @toggle-staging="toggleStagingArea"
+        @toggle-help="showHelp = !showHelp"
+      />
 
     <!-- 使用说明 -->
     <div v-if="showHelp" class="help">
       <ul>
-        <li>点击标签行：激活该标签页</li>
-        <li>休眠/唤醒：将标签页休眠以节省内存，或恢复使用</li>
-        <li>暂存：将标签页移入暂存区，稍后可从暂存区恢复</li>
-        <li>分组标题：点击可折叠/展开分组</li>
-        <li>编辑/删除分组：在分组右侧的"编辑/删除"按钮</li>
-        <li>快照：保存当前工作区，稍后可一键恢复</li>
+        <li>{{ $t('help.clickTab') }}</li>
+        <li>{{ $t('help.dormant') }}</li>
+        <li>{{ $t('help.staging') }}</li>
+        <li>{{ $t('help.groupTitle') }}</li>
+        <li>{{ $t('help.editDelete') }}</li>
+        <li>{{ $t('help.snapshot') }}</li>
       </ul>
     </div>
 
@@ -47,7 +50,7 @@
       <div class="tab-groups">
         <!-- 分组头部 -->
         <div class="groups-header">
-          <h3>标签页分组</h3>
+          <h3>{{ $t('main.tabGroups') }}</h3>
           <div class="header-left">
             <!-- 分组策略选择器 -->
             <!-- <div class="strategy-selector">
@@ -56,25 +59,25 @@
                 @change="(e) => tabStore.groupStrategy = e.target.value"
                 class="strategy-select"
               >
-                <option value="manual">📋 手动分组</option>
-                <option value="domain">🌐 域名分组</option>
-                <option value="keyword">🔍 关键词分组</option>
-                <option value="time">⏰ 时间分组</option>
+                <option value="manual">📋 {{ $t('modal.manual') }}</option>
+                <option value="domain">🌐 {{ $t('modal.domain') }}</option>
+                <option value="keyword">🔍 {{ $t('modal.keyword') }}</option>
+                <option value="time">⏰ {{ $t('modal.time') }}</option>
               </select>
             </div> -->
             <!-- 新建分组按钮 -->
-            <button @click="createNewGroup" class="btn btn-outline btn-small tooltip" data-tooltip="新建分组">
+            <button @click="createNewGroup" class="btn btn-outline btn-small tooltip" :data-tooltip="$t('main.newGroup')">
               <svg viewBox="0 0 24 24" fill="currentColor" class="btn-icon">
                 <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
               </svg>
-              <span>新建分组</span>
+              <span>{{ $t('main.newGroup') }}</span>
             </button>
           </div>
         </div>
 
         <!-- 分组列表 -->
         <div v-if="tabStore.groups.length === 0" class="no-groups">
-          <p>暂无分组，请选择分组策略或等待自动分组</p>
+          <p>{{ $t('main.noGroups') }}</p>
         </div>
 
         <!-- 分组组件 -->
@@ -107,21 +110,21 @@
       <div v-if="showEditGroup" class="modal-overlay" @click="closeEditGroup">
         <div class="modal-content" @click.stop>
           <div class="modal-header">
-            <h3>编辑分组</h3>
+            <h3>{{ $t('modal.editGroup') }}</h3>
             <button @click="closeEditGroup" class="modal-close">&times;</button>
           </div>
           <div class="modal-body">
             <div class="form-group">
-              <label>分组名称</label>
+              <label>{{ $t('modal.groupName') }}</label>
               <input 
                 v-model="editingGroup.name" 
                 type="text" 
                 class="form-input" 
-                placeholder="输入分组名称"
+                :placeholder="$t('modal.enterGroupName')"
               />
             </div>
             <div class="form-group">
-              <label>分组图标</label>
+              <label>{{ $t('modal.groupIcon') }}</label>
               <div class="icon-selector">
                 <button 
                   v-for="icon in availableIcons" 
@@ -134,18 +137,18 @@
               </div>
             </div>
             <div class="form-group">
-              <label>分组类型</label>
+              <label>{{ $t('modal.groupType') }}</label>
               <select v-model="editingGroup.type" class="form-select">
-                <option value="manual">手动分组</option>
-                <option value="domain">域名分组</option>
-                <option value="keyword">关键词分组</option>
-                <option value="time">时间分组</option>
+                <option value="manual">{{ $t('modal.manual') }}</option>
+                <option value="domain">{{ $t('modal.domain') }}</option>
+                <option value="keyword">{{ $t('modal.keyword') }}</option>
+                <option value="time">{{ $t('modal.time') }}</option>
               </select>
             </div>
           </div>
           <div class="modal-footer">
-            <button @click="closeEditGroup" class="btn btn-outline">取消</button>
-            <button @click="saveEditGroup" class="btn btn-primary">保存</button>
+            <button @click="closeEditGroup" class="btn btn-outline">{{ $t('modal.cancel') }}</button>
+            <button @click="saveEditGroup" class="btn btn-primary">{{ $t('modal.save') }}</button>
           </div>
         </div>
       </div>
@@ -161,19 +164,272 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useTabStore } from './stores/tabStore'
 import { useSnapshotStore } from './stores/snapshotStore'
+
 import Header from './components/Header.vue'
 import Stats from './components/Stats.vue'
 import TabGroup from './components/TabGroup.vue'
 import StagingArea from './components/StagingArea.vue'
 import Snapshots from './components/Snapshots.vue'
 import ThemeToggle from './components/ThemeToggle.vue'
+import LanguageToggle from './components/LanguageToggle.vue'
 
 // 使用 stores
 const tabStore = useTabStore()
 const snapshotStore = useSnapshotStore()
+
+// 简单的国际化函数
+const $t = (key) => {
+  const lang = localStorage.getItem('language') || 'zh_CN'
+  const messages = {
+    zh_CN: {
+      // Header
+      'header.subtitle': '智能标签页管理',
+      'header.createSnapshot': '创建快照',
+      'header.snapshot': '快照',
+      'header.staging': '暂存',
+      'header.toggleStaging': '收起暂存区',
+      'header.openStaging': '打开暂存区',
+      'header.help': '帮助',
+      'header.closeHelp': '关闭说明',
+      'header.showHelp': '使用说明',
+      'header.github': 'GitHub',
+      'header.githubTooltip': '在 GitHub 上查看源代码',
+      
+      // Stats
+      'stats.overview': '概览',
+      'stats.overviewSubtitle': '内存与标签/分组',
+      'stats.memoryEfficiency': '内存效率',
+      'stats.tabs': '标签页',
+      'stats.active': '活跃',
+      'stats.dormant': '休眠',
+      'stats.groups': '分组',
+      'stats.staging': '暂存',
+      'stats.used': '使用',
+      'stats.saved': '节省',
+      
+      // Main
+      'main.tabGroups': '标签页分组',
+      'main.newGroup': '新建分组',
+      'main.noGroups': '暂无分组，请选择分组策略或等待自动分组',
+      
+      // Group
+      'group.dragSort': '拖拽排序分组',
+      'group.edit': '编辑分组',
+      'group.delete': '删除分组',
+      'group.empty': '分组为空',
+      'group.emptySubtitle': '拖拽标签页到这里或从其他分组移动',
+      
+      // Tabs
+      'tabs.count': '个标签',
+      'tab.wakeUp': '唤醒标签页',
+      'tab.sleep': '休眠标签页',
+      'tab.moveToStaging': '移动到暂存区',
+      
+      // Staging
+      'staging.title': '暂存区',
+      'staging.subtitle': '临时存放的标签页',
+      'staging.clear': '清空暂存区',
+      'staging.clearTooltip': '清空暂存区',
+      'staging.restore': '恢复标签页',
+      
+      // Snapshots
+      'snapshots.title': '工作区快照',
+      'snapshots.subtitle': '保存和恢复工作状态',
+      'snapshots.delete': '删除快照',
+      'snapshots.deleteTooltip': '删除快照',
+      
+      // Options
+      'options.autoGrouping': '自动分组',
+      'options.autoGroupingDesc': '根据域名、关键词或时间自动创建分组',
+      'options.keywords': '关键词',
+      'options.keywordsDesc': '用于关键词分组的标签，用逗号分隔',
+      'options.dormancyThreshold': '休眠阈值（分钟）',
+      'options.dormancyThresholdDesc': '标签页在指定时间内未激活将自动休眠以节省内存',
+      'options.enableDormancy': '启用自动休眠',
+      'options.enableDormancyDesc': '自动休眠长时间未使用的标签页',
+      'options.maxTabsPerWindow': '每个窗口最大标签页数',
+      'options.maxTabsPerWindowDesc': '超过此数量的标签页将被建议移动到暂存区',
+      'options.enableStagingArea': '启用暂存区',
+      'options.enableStagingAreaDesc': '允许将标签页移动到暂存区以节省主界面空间',
+      'options.snapshotSettings': '快照设置',
+      'options.maxSnapshots': '最大快照数量',
+      'options.maxSnapshotsDesc': '超过此数量的快照将被自动删除（保留最新的）',
+      'options.autoBackup': '自动备份快照',
+      'options.autoBackupDesc': '定期自动创建当前工作区的快照',
+      'options.dataManagement': '数据管理',
+      'options.exportData': '📤 导出数据',
+      'options.importData': '📥 导入数据',
+      'options.clearData': '🗑️ 清除所有数据',
+      
+      // Help
+      'help.clickTab': '点击标签行：激活该标签页',
+      'help.dormant': '休眠/唤醒：将标签页休眠以节省内存，或恢复使用',
+      'help.staging': '暂存：将标签页移入暂存区，稍后可从暂存区恢复',
+      'help.groupTitle': '分组标题：点击可折叠/展开分组',
+      'help.editDelete': '编辑/删除分组：在分组右侧的"编辑/删除"按钮',
+      'help.snapshot': '快照：保存当前工作区，稍后可一键恢复',
+      
+      // Modal
+      'modal.editGroup': '编辑分组',
+      'modal.groupName': '分组名称',
+      'modal.groupIcon': '分组图标',
+      'modal.groupType': '分组类型',
+      'modal.enterGroupName': '输入分组名称',
+      'modal.manual': '手动分组',
+      'modal.domain': '域名分组',
+      'modal.keyword': '关键词分组',
+      'modal.time': '时间分组',
+      'modal.cancel': '取消',
+      'modal.save': '保存',
+      
+      // Actions
+      'actions.deleteGroupConfirm': '确定要删除分组"{name}"吗？',
+      'actions.deleteGroupWarning': '⚠️ 警告：该分组包含 {count} 个标签页',
+      'actions.deleteGroupIrreversible': '删除分组将同时关闭所有标签页，此操作不可撤销！',
+      'actions.continue': '继续',
+      'actions.enterSnapshotName': '请输入快照名称:',
+      'actions.saveFailed': '保存分组失败',
+      'actions.deleteFailed': '删除分组失败',
+      'actions.snapshotFailed': '创建快照失败',
+      'actions.snapshotRestoreFailed': '恢复快照失败',
+      
+      // Snapshots
+      'snapshots.deleteConfirm': '确定要删除这个快照吗？',
+      'snapshots.restoreConfirm': '确定要恢复这个工作区快照吗？'
+    },
+    en: {
+      // Header
+      'header.subtitle': 'Smart Tab Management',
+      'header.createSnapshot': 'Create Snapshot',
+      'header.snapshot': 'Snapshot',
+      'header.staging': 'Staging',
+      'header.toggleStaging': 'Hide Staging Area',
+      'header.openStaging': 'Show Staging Area',
+      'header.help': 'Help',
+      'header.closeHelp': 'Close Help',
+      'header.showHelp': 'Show Help',
+      'header.github': 'GitHub',
+      'header.githubTooltip': 'View source code on GitHub',
+      
+      // Stats
+      'stats.overview': 'Overview',
+      'stats.overviewSubtitle': 'Memory & Tabs/Groups',
+      'stats.memoryEfficiency': 'Memory Efficiency',
+      'stats.tabs': 'Tabs',
+      'stats.active': 'Active',
+      'stats.dormant': 'Dormant',
+      'stats.groups': 'Groups',
+      'stats.staging': 'Staging',
+      'stats.used': 'Used',
+      'stats.saved': 'Saved',
+      
+      // Main
+      'main.tabGroups': 'Tab Groups',
+      'main.newGroup': 'New Group',
+      'main.noGroups': 'No groups yet. Please select a grouping strategy or wait for auto-grouping',
+      
+      // Group
+      'group.dragSort': 'Drag to sort groups',
+      'group.edit': 'Edit Group',
+      'group.delete': 'Delete Group',
+      'group.empty': 'Group is Empty',
+      'group.emptySubtitle': 'Drag tabs here or move from other groups',
+      
+      // Tabs
+      'tabs.count': 'tabs',
+      'tab.wakeUp': 'Wake Up Tab',
+      'tab.sleep': 'Sleep Tab',
+      'tab.moveToStaging': 'Move to Staging Area',
+      
+      // Staging
+      'staging.title': 'Staging Area',
+      'staging.subtitle': 'Temporarily stored tabs',
+      'staging.clear': 'Clear Staging Area',
+      'staging.clearTooltip': 'Clear Staging Area',
+      'staging.restore': 'Restore Tab',
+      
+      // Snapshots
+      'snapshots.title': 'Workspace Snapshots',
+      'snapshots.subtitle': 'Save and restore workspace state',
+      'snapshots.delete': 'Delete Snapshot',
+      'snapshots.deleteTooltip': 'Delete Snapshot',
+      
+      // Options
+      'options.autoGrouping': 'Auto Grouping',
+      'options.autoGroupingDesc': 'Automatically create groups based on domain, keywords, or time',
+      'options.keywords': 'Keywords',
+      'options.keywordsDesc': 'Keywords for keyword grouping, separated by commas',
+      'options.dormancyThreshold': 'Dormancy Threshold (minutes)',
+      'options.dormancyThresholdDesc': 'Tabs inactive for this duration will be automatically put to sleep to save memory',
+      'options.enableDormancy': 'Enable Auto Dormancy',
+      'options.enableDormancyDesc': 'Automatically put unused tabs to sleep',
+      'options.maxTabsPerWindow': 'Max Tabs Per Window',
+      'options.maxTabsPerWindowDesc': 'Tabs exceeding this count will be suggested to move to staging area',
+      'options.enableStagingArea': 'Enable Staging Area',
+      'options.enableStagingAreaDesc': 'Allow tabs to be moved to staging area to save main interface space',
+      'options.snapshotSettings': 'Snapshot Settings',
+      'options.maxSnapshots': 'Max Snapshots',
+      'options.maxSnapshotsDesc': 'Snapshots exceeding this count will be automatically deleted (keep latest)',
+      'options.autoBackup': 'Auto Backup',
+      'options.autoBackupDesc': 'Periodically create snapshots of current workspace',
+      'options.dataManagement': 'Data Management',
+      'options.exportData': '📤 Export Data',
+      'options.importData': '📥 Import Data',
+      'options.clearData': '🗑️ Clear All Data',
+      
+      // Help
+      'help.clickTab': 'Click tab row: Activate the tab',
+      'help.dormant': 'Dormant/Wake: Put tabs to sleep to save memory, or restore',
+      'help.staging': 'Staging: Move tabs to staging area, can be restored later',
+      'help.groupTitle': 'Group title: Click to collapse/expand group',
+      'help.editDelete': 'Edit/Delete group: Use "Edit/Delete" buttons on the right',
+      'help.snapshot': 'Snapshot: Save current workspace, can be restored with one click',
+      
+      // Modal
+      'modal.editGroup': 'Edit Group',
+      'modal.groupName': 'Group Name',
+      'modal.groupIcon': 'Group Icon',
+      'modal.groupType': 'Group Type',
+      'modal.enterGroupName': 'Enter group name',
+      'modal.manual': 'Manual',
+      'modal.domain': 'Domain',
+      'modal.keyword': 'Keyword',
+      'modal.time': 'Time',
+      'modal.cancel': 'Cancel',
+      'modal.save': 'Save',
+      
+      // Actions
+      'actions.deleteGroupConfirm': 'Are you sure you want to delete group "{name}"?',
+      'actions.deleteGroupWarning': '⚠️ Warning: This group contains {count} tabs',
+      'actions.deleteGroupIrreversible': 'Deleting the group will close all tabs. This action cannot be undone!',
+      'actions.continue': 'Continue',
+      'actions.enterSnapshotName': 'Please enter snapshot name:',
+      'actions.saveFailed': 'Failed to save group',
+      'actions.deleteFailed': 'Failed to delete group',
+      'actions.snapshotFailed': 'Failed to create snapshot',
+      'actions.snapshotRestoreFailed': 'Failed to restore snapshot',
+      
+      // Snapshots
+      'snapshots.deleteConfirm': 'Are you sure you want to delete this snapshot?',
+      'snapshots.restoreConfirm': 'Are you sure you want to restore this workspace snapshot?'
+    }
+  }
+  
+  let message = messages[lang]?.[key] || key
+  
+  // 简单的参数替换
+  if (key.includes('{name}') && arguments[1]?.name) {
+    message = message.replace('{name}', arguments[1].name)
+  }
+  if (key.includes('{count}') && arguments[1]?.count) {
+    message = message.replace('{count}', arguments[1].count)
+  }
+  
+  return message
+}
 
 // 响应式数据
 const stagingAreaVisible = ref(false)
@@ -236,7 +492,7 @@ const closeEditGroup = () => {
 
 const saveEditGroup = async () => {
   if (!editingGroup.value.name.trim()) {
-    alert('请输入分组名称')
+    alert($t('modal.enterGroupName'))
     return
   }
   
@@ -249,10 +505,10 @@ const saveEditGroup = async () => {
       await tabStore.createManualGroup(editingGroup.value.name, editingGroup.value.icon)
     }
     closeEditGroup()
-  } catch (error) {
-    console.error('保存分组失败:', error)
-    alert('保存分组失败：' + error.message)
-  }
+      } catch (error) {
+      console.error('保存分组失败:', error)
+      alert($t('actions.saveFailed') + '：' + error.message)
+    }
 }
 
 const deleteGroup = async (groupId) => {
@@ -260,12 +516,12 @@ const deleteGroup = async (groupId) => {
   if (!group) return
   
   const tabCount = group.tabs.length
-  let message = `确定要删除分组"${group.name}"吗？`
+  let message = $t('actions.deleteGroupConfirm', { name: group.name })
   
   if (tabCount > 0) {
-    message += `\n\n⚠️ 警告：该分组包含 ${tabCount} 个标签页`
-    message += '\n\n删除分组将同时关闭所有标签页，此操作不可撤销！'
-    message += '\n\n是否继续？'
+    message += `\n\n${$t('actions.deleteGroupWarning', { count: tabCount })}`
+    message += `\n\n${$t('actions.deleteGroupIrreversible')}`
+    message += `\n\n${$t('actions.continue')}？`
   }
   
   if (confirm(message)) {
@@ -273,13 +529,13 @@ const deleteGroup = async (groupId) => {
       await tabStore.deleteGroup(groupId)
     } catch (error) {
       console.error('删除分组失败:', error)
-      alert('删除分组失败：' + error.message)
+      alert($t('actions.deleteFailed') + '：' + error.message)
     }
   }
 }
 
 const createSnapshot = async () => {
-  const name = prompt('请输入快照名称:')
+  const name = prompt($t('actions.enterSnapshotName'))
   if (!name) return
   
   try {
@@ -302,15 +558,15 @@ const createSnapshot = async () => {
     }
     // 刷新本地快照列表
     await snapshotStore.initialize()
-  } catch (e) {
-    console.error('[UI] createSnapshot error:', e)
-    alert('创建快照失败：' + (e?.message || e))
-  }
+      } catch (e) {
+      console.error('[UI] createSnapshot error:', e)
+      alert($t('actions.snapshotFailed') + '：' + (e?.message || e))
+    }
 }
 
 const restoreSnapshot = async (snapshotId) => {
   console.log('[UI] restoreSnapshot click:', snapshotId)
-  if (!confirm('确定要恢复这个工作区快照吗？')) return
+  if (!confirm($t('snapshots.restoreConfirm'))) return
   
   try {
     console.log('[UI] sending message to background.restoreSnapshot')
@@ -334,14 +590,14 @@ const restoreSnapshot = async (snapshotId) => {
       await snapshotStore.restoreSnapshot(snapshotId)
     }
     console.log('[UI] restoreSnapshot completed')
-  } catch (e) {
-    console.error('[UI] restoreSnapshot error:', e)
-    alert('恢复快照失败：' + (e?.message || e))
-  }
+      } catch (e) {
+      console.error('[UI] restoreSnapshot error:', e)
+      alert($t('actions.snapshotRestoreFailed') + '：' + (e?.message || e))
+    }
 }
 
 const deleteSnapshot = (snapshotId) => {
-  if (confirm('确定要删除这个快照吗？')) {
+  if (confirm($t('snapshots.deleteConfirm'))) {
     snapshotStore.deleteSnapshot(snapshotId)
   }
 }
@@ -378,6 +634,8 @@ const handleReorderGroup = ({ groupId, oldIndex, newIndex }) => {
 // 初始化
 onMounted(async () => {
   console.log('🚀 === App.vue 开始初始化 ===')
+  
+
   
   // 在页面上显示初始化状态
   const statusDiv = document.createElement('div')

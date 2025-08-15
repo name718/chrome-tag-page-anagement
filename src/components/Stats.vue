@@ -16,38 +16,38 @@
             </svg>
           </div>
           <div class="stat-title-group">
-            <h3 class="stat-title">概览</h3>
-            <p class="stat-subtitle">内存与标签/分组</p>
+            <h3 class="stat-title">{{ $t('stats.overview') }}</h3>
+            <p class="stat-subtitle">{{ $t('stats.overviewSubtitle') }}</p>
           </div>
         </div>
         
         <div class="overview-content">
           <!-- 内存效率 -->
           <div class="overview-item">
-            <div class="overview-title">内存效率</div>
+            <div class="overview-title">{{ $t('stats.memoryEfficiency') }}</div>
             <div class="overview-value">{{ memoryEfficiency }}%</div>
             <div class="overview-details">
-              <span>使用: {{ estimatedMemoryUsage }}MB</span>
-              <span class="ok">节省: {{ estimatedMemorySaved }}MB</span>
+              <span>{{ $t('stats.used') }}: {{ estimatedMemoryUsage }}MB</span>
+              <span class="ok">{{ $t('stats.saved') }}: {{ estimatedMemorySaved }}MB</span>
             </div>
           </div>
           
           <!-- 标签页统计 -->
           <div class="overview-item">
-            <div class="overview-title">标签页</div>
+            <div class="overview-title">{{ $t('stats.tabs') }}</div>
             <div class="overview-value">{{ totalTabs }}</div>
             <div class="overview-details">
-              <span class="ok">活跃: {{ activeTabs }}</span>
-              <span class="muted">休眠: {{ dormantTabs }}</span>
+              <span class="ok">{{ $t('stats.active') }}: {{ activeTabs }}</span>
+              <span class="muted">{{ $t('stats.dormant') }}: {{ dormantTabs }}</span>
             </div>
           </div>
           
           <!-- 分组统计 -->
           <div class="overview-item">
-            <div class="overview-title">分组</div>
+            <div class="overview-title">{{ $t('stats.groups') }}</div>
             <div class="overview-value">{{ groupCount }}</div>
             <div class="overview-details">
-              <span class="warn">暂存: {{ stagingCount }}</span>
+              <span class="warn">{{ $t('stats.staging') }}: {{ stagingCount }}</span>
             </div>
           </div>
         </div>
@@ -90,7 +90,8 @@ const props = defineProps({
   estimatedMemorySaved: {
     type: Number,
     default: 0
-  }
+  },
+
 })
 </script>
 

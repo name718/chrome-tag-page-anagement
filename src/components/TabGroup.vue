@@ -14,21 +14,21 @@
         </div>
         <div class="group-details">
           <span class="group-name" :title="groupName">{{ groupName }}</span>
-          <span class="tab-count">{{ tabCount }} 个标签</span>
+          <span class="tab-count">{{ tabCount }} {{ $t('tabs.count') }}</span>
         </div>
       </div>
 
 
       <div class="group-actions">
         <!-- 拖拽手柄 -->
-        <div class="drag-handle tooltip" data-tooltip="拖拽排序分组" ref="dragHandle">
+        <div class="drag-handle tooltip" :data-tooltip="$t('group.dragSort')" ref="dragHandle">
           <svg viewBox="0 0 24 24" fill="currentColor" class="drag-icon">
             <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" />
           </svg>
         </div>
 
         <!-- 编辑按钮 -->
-        <button @click.stop="$emit('edit', group.id)" class="group-action-btn edit-btn tooltip" data-tooltip="编辑分组">
+        <button @click.stop="$emit('edit', group.id)" class="group-action-btn edit-btn tooltip" :data-tooltip="$t('group.edit')">
           <svg viewBox="0 0 24 24" fill="currentColor" class="action-icon">
             <path
               d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
@@ -36,7 +36,7 @@
         </button>
 
         <!-- 删除按钮 -->
-        <button @click.stop="$emit('delete', group.id)" class="group-action-btn delete-btn tooltip" data-tooltip="删除分组">
+        <button @click.stop="$emit('delete', group.id)" class="group-action-btn delete-btn tooltip" :data-tooltip="$t('group.delete')">
           <svg viewBox="0 0 24 24" fill="currentColor" class="action-icon">
             <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
           </svg>
@@ -56,8 +56,8 @@
          <div class="placeholder-content">
            <div class="placeholder-icon">📁</div>
            <div class="placeholder-text">
-             <div class="placeholder-title">分组为空</div>
-             <div class="placeholder-subtitle">拖拽标签页到这里或从其他分组移动</div>
+             <div class="placeholder-title">{{ $t('group.empty') }}</div>
+             <div class="placeholder-subtitle">{{ $t('group.emptySubtitle') }}</div>
            </div>
          </div>
        </div>
@@ -81,7 +81,8 @@ const props = defineProps({
   groupIndex: {
     type: Number,
     required: true
-  }
+  },
+
 })
 
 // 使用计算属性确保响应式更新

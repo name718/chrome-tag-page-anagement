@@ -1,0 +1,95 @@
+{
+  "app": {
+    "name": "TabTamer",
+    "subtitle": "Smart Tab Management",
+    "description": "Intelligent Chrome extension for tab management"
+  },
+  "header": {
+    "snapshot": "Snapshot",
+    "staging": "Staging",
+    "help": "Help",
+    "github": "GitHub",
+    "viewSource": "View source code on GitHub"
+  },
+  "stats": {
+    "overview": "Overview",
+    "memoryAndTabs": "Memory & Tabs/Groups",
+    "memoryEfficiency": "Memory Efficiency",
+    "tabs": "Tabs",
+    "groups": "Groups",
+    "active": "Active",
+    "dormant": "Dormant",
+    "staging": "Staging",
+    "used": "Used",
+    "saved": "Saved"
+  },
+  "main": {
+    "tabGroups": "Tab Groups",
+    "newGroup": "New Group",
+    "noGroups": "No groups yet. Please select a grouping strategy or wait for auto-grouping",
+    "emptyGroup": "Group is Empty",
+    "emptyGroupSubtitle": "Drag tabs here or move from other groups"
+  },
+  "help": {
+    "title": "Usage Guide",
+    "clickTab": "Click tab row: Activate the tab",
+    "dormant": "Dormant/Wake: Put tabs to sleep to save memory, or restore",
+    "staging": "Staging: Move tabs to staging area, can be restored later",
+    "groupTitle": "Group title: Click to collapse/expand group",
+    "editDelete": "Edit/Delete group: Use 'Edit/Delete' buttons on the right",
+    "snapshot": "Snapshot: Save current workspace, can be restored with one click"
+  },
+  "snapshots": {
+    "title": "Workspace Snapshots",
+    "subtitle": "Save and restore workspace state",
+    "deleteConfirm": "Are you sure you want to delete this snapshot?",
+    "restoreConfirm": "Are you sure you want to restore this workspace snapshot?",
+    "delete": "Delete"
+  },
+  "staging": {
+    "title": "Staging Area",
+    "subtitle": "Temporarily stored tabs",
+    "clear": "Clear All",
+    "restore": "Restore All"
+  },
+  "modal": {
+    "editGroup": "Edit Group",
+    "groupName": "Group Name",
+    "groupIcon": "Group Icon",
+    "groupType": "Group Type",
+    "enterGroupName": "Enter group name",
+    "cancel": "Cancel",
+    "save": "Save",
+    "manual": "Manual",
+    "domain": "Domain",
+    "keyword": "Keyword",
+    "time": "Time"
+  },
+  "actions": {
+    "edit": "Edit",
+    "delete": "Delete",
+    "deleteGroupConfirm": "Are you sure you want to delete group \"{name}\"?",
+    "deleteGroupWarning": "⚠️ Warning: This group contains {count} tabs",
+    "deleteGroupIrreversible": "Deleting the group will close all tabs. This action cannot be undone!",
+    "continue": "Continue",
+    "createSnapshot": "Create Snapshot",
+    "enterSnapshotName": "Enter snapshot name:",
+    "snapshotCreated": "Snapshot created successfully",
+    "snapshotFailed": "Failed to create snapshot",
+    "snapshotRestored": "Snapshot restored successfully",
+    "snapshotRestoreFailed": "Failed to restore snapshot"
+  },
+  "theme": {
+    "light": "Light Mode",
+    "dark": "Dark Mode",
+    "switchToLight": "Switch to Light Mode",
+    "switchToDark": "Switch to Dark Mode",
+    "system": "System"
+  },
+  "language": {
+    "en": "English",
+    "zh": "中文",
+    "switchToEnglish": "Switch to English",
+    "switchToChinese": "Switch to Chinese"
+  }
+}

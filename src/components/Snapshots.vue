@@ -14,8 +14,8 @@
           </svg>
         </div>
         <div>
-          <h3>工作区快照</h3>
-          <p>保存和恢复工作状态</p>
+          <h3>{{ $t('snapshots.title') }}</h3>
+          <p>{{ $t('snapshots.subtitle') }}</p>
         </div>
       </div>
     </div>
@@ -34,7 +34,7 @@
         <button 
           @click.stop="$emit('delete', snapshot.id)" 
           class="snapshot-delete-btn tooltip" 
-          data-tooltip="删除快照"
+          :data-tooltip="$t('snapshots.deleteTooltip')"
         >
           <svg viewBox="0 0 24 24" fill="currentColor" class="delete-icon">
             <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
@@ -51,7 +51,8 @@ const props = defineProps({
   snapshots: {
     type: Array,
     default: () => []
-  }
+  },
+
 })
 
 // Emits
