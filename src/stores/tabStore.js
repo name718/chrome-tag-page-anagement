@@ -809,6 +809,10 @@ export const useTabStore = defineStore('tabs', () => {
           await chrome.tabs.remove(tab.id)
           console.log(`Closed tab: ${tab.title}`)
         } catch (error) {
+          if (error.message.includes('No tab with id')) {
+            console.warn(`标签页 ${tab.id} 已不存在，跳过关闭`)
+            continue
+          }
           console.warn(`Failed to close tab ${tab.id}:`, error.message)
         }
       }
@@ -834,19 +838,38 @@ export const useTabStore = defineStore('tabs', () => {
       }
     } catch (error) {
       console.error('激活标签页失败:', error)
+      // 如果是标签页不存在的错误，清理无效数据
+      if (error.message.includes('No tab with id')) {
+        console.warn(`标签页 ${tabId} 已不存在，从本地数据中移除`)
+        removeInvalidTab(tabId)
+      }
     }
   }
 
   const toggleTabDormant = async (tabId) => {
     try {
       const tab = allTabs.value.find(t => t.id === tabId)
-      if (!tab) return
+      if (!tab) {
+        console.warn(`标签页 ${tabId} 在本地数据中不存在，可能已被关闭`)
+        return
+      }
 
       if (tab.discarded) {
-        // 唤醒标签页
-        await chrome.tabs.reload(tabId)
-        tab.dormant = false
-        tab.lastActive = Date.now()
+        // 唤醒标签页前先验证标签页是否仍然存在
+        try {
+          await chrome.tabs.reload(tabId)
+          tab.dormant = false
+          tab.lastActive = Date.now()
+          console.log(`标签页 ${tabId} 唤醒成功`)
+        } catch (reloadError) {
+          if (reloadError.message.includes('No tab with id')) {
+            console.warn(`标签页 ${tabId} 已不存在，从本地数据中移除`)
+            // 从所有分组中移除这个无效的标签页
+            removeInvalidTab(tabId)
+            return
+          }
+          throw reloadError
+        }
       } else {
         // 休眠标签页前先检查标签页状态
         try {
@@ -869,8 +892,14 @@ export const useTabStore = defineStore('tabs', () => {
           tab.dormant = true
           console.log(`标签页 ${tabId} 休眠成功`)
         } catch (discardError) {
+          if (discardError.message.includes('No tab with id')) {
+            console.warn(`标签页 ${tabId} 已不存在，从本地数据中移除`)
+            // 从所有分组中移除这个无效的标签页
+            removeInvalidTab(tabId)
+            return
+          }
           console.warn(`无法休眠标签页 ${tabId}:`, discardError.message)
-          // 休眠失败时，不更新状态，保持原状态
+          // 其他休眠失败时，不更新状态，保持原状态
           return
         }
       }
@@ -879,6 +908,11 @@ export const useTabStore = defineStore('tabs', () => {
       await saveTabStates()
     } catch (error) {
       console.error('切换标签页休眠状态失败:', error)
+      // 如果是标签页不存在的错误，清理无效数据
+      if (error.message.includes('No tab with id')) {
+        console.warn(`标签页 ${tabId} 已不存在，从本地数据中移除`)
+        removeInvalidTab(tabId)
+      }
     }
   }
 
@@ -892,6 +926,8 @@ export const useTabStore = defineStore('tabs', () => {
       })
       saveGroups()
       saveStagingTabs()
+    } else {
+      console.warn(`标签页 ${tabId} 在本地数据中不存在，可能已被关闭`)
     }
   }
 
@@ -899,11 +935,25 @@ export const useTabStore = defineStore('tabs', () => {
     const tabIndex = stagingTabs.value.findIndex(t => t.id === tabId)
     if (tabIndex !== -1) {
       const tab = stagingTabs.value[tabIndex]
-      stagingTabs.value.splice(tabIndex, 1)
       
-      // 重新分组
-      await autoGroupTabs()
-      saveStagingTabs()
+      // 验证标签页是否仍然存在
+      try {
+        await chrome.tabs.get(tabId)
+        // 标签页存在，从暂存区移除并重新分组
+        stagingTabs.value.splice(tabIndex, 1)
+        await autoGroupTabs()
+        saveStagingTabs()
+      } catch (error) {
+        if (error.message.includes('No tab with id')) {
+          console.warn(`标签页 ${tabId} 已不存在，从暂存区中移除`)
+          stagingTabs.value.splice(tabIndex, 1)
+          saveStagingTabs()
+        } else {
+          console.error('恢复标签页失败:', error)
+        }
+      }
+    } else {
+      console.warn(`标签页 ${tabId} 在暂存区中不存在`)
     }
   }
 
@@ -1031,6 +1081,41 @@ export const useTabStore = defineStore('tabs', () => {
     }, 5 * 60 * 1000)
   }
 
+  const removeInvalidTab = (tabId) => {
+    console.log(`清理无效标签页 ${tabId}`)
+    
+    // 从 allTabs 中移除
+    const tabIndex = allTabs.value.findIndex(t => t.id === tabId)
+    if (tabIndex !== -1) {
+      allTabs.value.splice(tabIndex, 1)
+      console.log(`从 allTabs 中移除标签页 ${tabId}`)
+    }
+    
+    // 从所有分组中移除
+    groups.value.forEach(group => {
+      const groupTabIndex = group.tabs.findIndex(t => t.id === tabId)
+      if (groupTabIndex !== -1) {
+        group.tabs.splice(groupTabIndex, 1)
+        console.log(`从分组 ${group.name} 中移除标签页 ${tabId}`)
+      }
+    })
+    
+    // 从暂存区中移除
+    const stagingIndex = stagingTabs.value.findIndex(t => t.id === tabId)
+    if (stagingIndex !== -1) {
+      stagingTabs.value.splice(stagingIndex, 1)
+      console.log(`从暂存区中移除标签页 ${tabId}`)
+    }
+    
+    // 清理标签页状态
+    cleanupTabState(tabId)
+    
+    // 保存更改
+    saveGroups()
+    saveStagingTabs()
+    saveTabStates()
+  }
+
   const cleanupTabState = async (tabId) => {
     try {
       const result = await chrome.storage.local.get(['tabStates'])
@@ -1048,14 +1133,40 @@ export const useTabStore = defineStore('tabs', () => {
       const result = await chrome.storage.local.get(['tabStates'])
       const savedStates = result.tabStates || {}
       
-      // 更新标签页状态以匹配实际状态
+      // 更新标签页状态以匹配实际状态，同时清理无效标签页
+      const validTabs = []
       allTabs.value.forEach(tab => {
         const actualTab = tabs.find(t => t.id === tab.id)
         if (actualTab) {
           tab.discarded = actualTab.discarded
           tab.dormant = actualTab.discarded || savedStates[tab.id]?.dormant || false
+          validTabs.push(tab)
+        } else {
+          console.log(`标签页 ${tab.id} 已不存在，将在同步后清理`)
         }
       })
+      
+      // 如果发现无效标签页，清理它们
+      if (validTabs.length !== allTabs.value.length) {
+        console.log(`发现 ${allTabs.value.length - validTabs.length} 个无效标签页，正在清理...`)
+        allTabs.value = validTabs
+        
+        // 清理分组中的无效标签页
+        groups.value.forEach(group => {
+          group.tabs = group.tabs.filter(tab => 
+            tabs.some(actualTab => actualTab.id === tab.id)
+          )
+        })
+        
+        // 清理暂存区中的无效标签页
+        stagingTabs.value = stagingTabs.value.filter(tab => 
+          tabs.some(actualTab => actualTab.id === tab.id)
+        )
+        
+        // 保存清理后的数据
+        saveGroups()
+        saveStagingTabs()
+      }
       
       // 保存同步后的状态
       await saveTabStates()
@@ -1283,6 +1394,7 @@ export const useTabStore = defineStore('tabs', () => {
     restoreFromStaging,
     clearStaging,
     moveTabToGroup,
+    removeInvalidTab,
     cleanupTabState,
     syncTabStates,
     moveGroup,
