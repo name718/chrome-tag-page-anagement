@@ -40,33 +40,34 @@ export const useTabStore = defineStore('tabs', () => {
     return totalTabs.value - dormantTabs.value
   })
 
-  const memorySaved = computed(() => {
-    const total = allTabs.value.length
-    const dormant = dormantTabs.value
-    return total > 0 ? Math.round((dormant / total) * 100) : 0
-  })
-
-  // 模拟内存使用数据
+  // 内存使用估算（基于实际标签页状态）
   const estimatedMemoryUsage = computed(() => {
-    // 每个活跃标签页约占用 50-200MB，休眠标签页约占用 5-10MB
-    const activeMemory = activeTabs.value * 150 // 平均150MB
-    const dormantMemory = dormantTabs.value * 8 // 平均8MB
+    // 每个活跃标签页约占用 80-120MB，休眠标签页约占用 5-15MB
+    const activeMemory = activeTabs.value * 100 // 平均100MB
+    const dormantMemory = dormantTabs.value * 10 // 平均10MB
     return Math.round(activeMemory + dormantMemory)
   })
 
+  // 如果所有标签页都活跃会占用的内存
+  const estimatedMemoryIfAllActive = computed(() => {
+    return totalTabs.value * 100 // 每个标签页100MB
+  })
+
+  // 实际节省的内存
   const estimatedMemorySaved = computed(() => {
-    // 如果所有标签页都活跃，会占用多少内存
-    const totalMemoryIfActive = totalTabs.value * 150
+    const totalMemoryIfActive = estimatedMemoryIfAllActive.value
     const currentMemory = estimatedMemoryUsage.value
     return Math.round(totalMemoryIfActive - currentMemory)
   })
 
+  // 内存效率：基于节省的内存百分比计算
   const memoryEfficiency = computed(() => {
-    const total = totalTabs.value
-    const dormant = dormantTabs.value
-    if (total === 0) return 0
-    // 计算内存效率：休眠标签页占比越高，效率越高
-    return Math.round((dormant / total) * 100)
+    const totalMemoryIfActive = estimatedMemoryIfAllActive.value
+    if (totalMemoryIfActive === 0) return 0
+    
+    const savedMemory = estimatedMemorySaved.value
+    // 内存效率 = (节省的内存 / 如果全部活跃的内存) * 100
+    return Math.round((savedMemory / totalMemoryIfActive) * 100)
   })
 
   const groupCount = computed(() => {
@@ -1631,8 +1632,8 @@ export const useTabStore = defineStore('tabs', () => {
     totalTabs,
     dormantTabs,
     activeTabs,
-    memorySaved,
     estimatedMemoryUsage,
+    estimatedMemoryIfAllActive,
     estimatedMemorySaved,
     memoryEfficiency,
     groupCount,
