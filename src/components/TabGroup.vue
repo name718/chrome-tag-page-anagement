@@ -7,9 +7,9 @@
 <template>
       <div class="tab-group" :class="{ 'is-collapsed': isCollapsed }">
     <!-- 分组头部 -->
-    <div class="group-header" @click="$emit('toggle-collapse', group.id)" title="点击折叠/展开">
+    <div class="group-header" @click="$emit('toggle-collapse', group.id)" title="点击折叠/展开" :style="{ borderLeftColor: groupColor }">
       <div class="group-info">
-        <div class="group-icon-wrapper">
+        <div class="group-icon-wrapper" :style="{ backgroundColor: groupColor }">
           <span class="group-icon">{{ groupIcon }}</span>
         </div>
         <div class="group-details">
@@ -90,6 +90,7 @@ const groupTabs = computed(() => props.group.tabs || [])
 const tabCount = computed(() => groupTabs.value.length)
 const groupName = computed(() => props.group.name || '')
 const groupIcon = computed(() => props.group.icon || '📁')
+const groupColor = computed(() => props.group.color || '#6366f1') // 默认蓝色
 const isCollapsed = computed(() => props.group.collapsed || false)
 
 // Emits
@@ -250,12 +251,14 @@ onUnmounted(() => {
   padding: 12px 16px;
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border-primary);
+  border-left: 4px solid var(--border-primary);
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: all 0.2s ease;
 }
 
 .group-header:hover {
   background: var(--bg-tertiary);
+  border-left-color: var(--accent-primary);
 }
 
 .group-info {
@@ -272,11 +275,16 @@ onUnmounted(() => {
   justify-content: center;
   background: var(--bg-tertiary);
   border-radius: 6px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px var(--shadow-light);
 }
 
 .group-icon {
   font-size: 18px;
   line-height: 1;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
 }
 
 .group-details {

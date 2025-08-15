@@ -138,6 +138,27 @@
               </div>
             </div>
             <div class="form-group">
+              <label>{{ $t('modal.groupColor') }}</label>
+              <div class="color-selector">
+                <button 
+                  v-for="color in availableColors" 
+                  :key="color"
+                  @click="editingGroup.color = color"
+                  :class="['color-option', { selected: editingGroup.color === color }]"
+                  :style="{ backgroundColor: color }"
+                  :title="color"
+                >
+                  <span v-if="editingGroup.color === color" class="color-check">✓</span>
+                </button>
+                <input 
+                  v-model="editingGroup.color" 
+                  type="color" 
+                  class="color-input"
+                  :title="$t('modal.customColor')"
+                />
+              </div>
+            </div>
+            <div class="form-group">
               <label>{{ $t('modal.groupType') }}</label>
               <select v-model="editingGroup.type" class="form-select">
                 <option value="manual">{{ $t('modal.manual') }}</option>
@@ -277,8 +298,10 @@ const $t = (key) => {
       'modal.editGroup': '编辑分组',
       'modal.groupName': '分组名称',
       'modal.groupIcon': '分组图标',
+      'modal.groupColor': '分组颜色',
       'modal.groupType': '分组类型',
       'modal.enterGroupName': '输入分组名称',
+      'modal.customColor': '自定义颜色',
       'modal.manual': '手动分组',
       'modal.domain': '域名分组',
       'modal.keyword': '关键词分组',
@@ -400,8 +423,10 @@ const $t = (key) => {
       'modal.editGroup': 'Edit Group',
       'modal.groupName': 'Group Name',
       'modal.groupIcon': 'Group Icon',
+      'modal.groupColor': 'Group Color',
       'modal.groupType': 'Group Type',
       'modal.enterGroupName': 'Enter group name',
+      'modal.customColor': 'Custom Color',
       'modal.manual': 'Manual',
       'modal.domain': 'Domain',
       'modal.keyword': 'Keyword',
@@ -452,7 +477,8 @@ const editingGroup = ref({
   id: '',
   name: '',
   icon: '📁',
-  type: 'manual'
+  type: 'manual',
+  color: '#6366f1' // 默认蓝色
 })
 
 // 可用图标列表
@@ -465,6 +491,30 @@ const availableIcons = [
   '🕗', '🕘', '🕙', '🕚', '🕛', '🕜', '🕝', '🕞', '🕟', '🕠', '🕡', '🕢', '🕣'
 ]
 
+// 预定义颜色列表
+const availableColors = [
+  '#6366f1', // 蓝色
+  '#8b5cf6', // 紫色
+  '#ec4899', // 粉色
+  '#ef4444', // 红色
+  '#f97316', // 橙色
+  '#eab308', // 黄色
+  '#22c55e', // 绿色
+  '#06b6d4', // 青色
+  '#3b82f6', // 深蓝色
+  '#f59e0b', // 琥珀色
+  '#10b981', // 翠绿色
+  '#dc2626', // 深红色
+  '#7c3aed', // 深紫色
+  '#059669', // 深绿色
+  '#0891b2', // 深青色
+  '#ea580c', // 深橙色
+  '#db2777', // 深粉色
+  '#65a30d', // 酸橙色
+  '#16a34a', // 翠绿色
+  '#0d9488'  // 蓝绿色
+]
+
 // 方法
 const toggleStagingArea = () => {
   stagingAreaVisible.value = !stagingAreaVisible.value
@@ -475,7 +525,8 @@ const createNewGroup = () => {
     id: '',
     name: '',
     icon: '📁',
-    type: 'manual'
+    type: 'manual',
+    color: '#6366f1' // 默认蓝色
   }
   showEditGroup.value = true
 }
@@ -487,7 +538,8 @@ const editGroup = (groupId) => {
       id: group.id,
       name: group.name,
       icon: group.icon,
-      type: group.type || 'manual'
+      type: group.type || 'manual',
+      color: group.color || '#6366f1' // 加载分组的颜色
     }
     showEditGroup.value = true
   }
@@ -499,7 +551,8 @@ const closeEditGroup = () => {
     id: '',
     name: '',
     icon: '📁',
-    type: 'manual'
+    type: 'manual',
+    color: '#6366f1' // 默认蓝色
   }
 }
 
@@ -515,7 +568,7 @@ const saveEditGroup = async () => {
       await tabStore.updateGroup(editingGroup.value)
     } else {
       // 创建新分组
-      await tabStore.createManualGroup(editingGroup.value.name, editingGroup.value.icon)
+      await tabStore.createManualGroup(editingGroup.value.name, editingGroup.value.icon, editingGroup.value.color)
     }
     closeEditGroup()
       } catch (error) {
@@ -1045,6 +1098,69 @@ onMounted(async () => {
   color: var(--text-inverse);
 }
 
+/* 颜色选择器样式 */
+.color-selector {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+  gap: 8px;
+  align-items: center;
+}
+
+.color-option {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--border-secondary);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  color: white;
+  font-weight: bold;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.color-option:hover {
+  border-color: var(--accent-primary);
+  transform: scale(1.05);
+}
+
+.color-option.selected {
+  border-color: var(--accent-primary);
+  border-width: 3px;
+  transform: scale(1.1);
+}
+
+.color-check {
+  font-size: 16px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.color-input {
+  width: 40px;
+  height: 40px;
+  border: 2px solid var(--border-secondary);
+  border-radius: 4px;
+  cursor: pointer;
+  background: transparent;
+  padding: 0;
+}
+
+.color-input:hover {
+  border-color: var(--accent-primary);
+}
+
+.color-input::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.color-input::-webkit-color-swatch {
+  border: none;
+  border-radius: 2px;
+}
+
 .modal-footer {
   display: flex;
   justify-content: flex-end;
@@ -1102,6 +1218,21 @@ onMounted(async () => {
     width: 36px;
     height: 36px;
     font-size: 16px;
+  }
+  
+  .color-selector {
+    grid-template-columns: repeat(auto-fill, minmax(36px, 1fr));
+    gap: 6px;
+  }
+  
+  .color-option {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .color-input {
+    width: 36px;
+    height: 36px;
   }
 }
 

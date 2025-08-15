@@ -237,7 +237,9 @@ export const useTabStore = defineStore('tabs', () => {
         collapsed: g.collapsed || false,
         tabs: Array.isArray(g?.tabs) ? g.tabs : [],
         // 添加用户编辑标记，用于判断是否应该保留空分组
-        userEdited: g.userEdited || false
+        userEdited: g.userEdited || false,
+        // 添加颜色属性，如果没有则使用默认颜色
+        color: g.color || getDefaultGroupColor(g.type || 'manual', g.name || '')
       }))
       
       console.log('最终分组数据:', groups.value)
@@ -359,6 +361,7 @@ export const useTabStore = defineStore('tabs', () => {
         strategy: group.strategy,
         collapsed: group.collapsed,
         userEdited: group.userEdited || false,
+        color: group.color || getDefaultGroupColor(group.type || 'manual', group.name || ''), // 保存颜色信息
         tabs: group.tabs.map(tab => ({
           id: tab.id,
           title: tab.title,
@@ -460,7 +463,8 @@ export const useTabStore = defineStore('tabs', () => {
               collapsed: false,
               type: 'manual',
               strategy: 'manual',
-              userEdited: false // 自动创建的暂存区分组
+              userEdited: false, // 自动创建的暂存区分组
+              color: getDefaultGroupColor('manual', '未分组') // 添加默认颜色
             })
           }
           const stagingGroup = groups.value.find(g => g.id === 'staging')
@@ -515,15 +519,17 @@ export const useTabStore = defineStore('tabs', () => {
         console.log('Processing tab:', tab.title, 'domain:', domain)
         
         if (!domainGroups[domain]) {
+          const groupName = getDomainDisplayName(domain)
           domainGroups[domain] = {
             id: `domain_${domain}`,
-            name: getDomainDisplayName(domain),
+            name: groupName,
             icon: getDomainIcon(domain),
             tabs: [],
             collapsed: false,
             type: 'domain',
             strategy: 'domain',
-            userEdited: false // 自动创建的分组默认未编辑
+            userEdited: false, // 自动创建的分组默认未编辑
+            color: getDefaultGroupColor('domain', domain) // 添加默认颜色
           }
         }
         domainGroups[domain].tabs.push(tab)
@@ -564,7 +570,8 @@ export const useTabStore = defineStore('tabs', () => {
             collapsed: false,
             type: 'keyword',
             strategy: 'keyword',
-            userEdited: false // 自动创建的分组默认未编辑
+            userEdited: false, // 自动创建的分组默认未编辑
+            color: getDefaultGroupColor('keyword', keyword) // 添加默认颜色
           }
         }
         keywordGroups[keyword].tabs.push(tab)
@@ -578,7 +585,9 @@ export const useTabStore = defineStore('tabs', () => {
             tabs: [],
             collapsed: false,
             type: 'keyword',
-            strategy: 'keyword'
+            strategy: 'keyword',
+            userEdited: false,
+            color: getDefaultGroupColor('keyword', '其他') // 添加默认颜色
           }
         }
         keywordGroups['其他'].tabs.push(tab)
@@ -642,7 +651,7 @@ export const useTabStore = defineStore('tabs', () => {
     await autoGroupTabs()
   }
 
-  const createManualGroup = async (name, icon = '📁') => {
+  const createManualGroup = async (name, icon = '📁', color = null) => {
     const newGroup = {
       id: `manual_${Date.now()}`,
       name: name,
@@ -651,7 +660,8 @@ export const useTabStore = defineStore('tabs', () => {
       collapsed: false,
       type: 'manual',
       strategy: 'manual',
-      userEdited: true // 手动创建的分组标记为用户编辑过
+      userEdited: true, // 手动创建的分组标记为用户编辑过
+      color: color || getDefaultGroupColor('manual') // 使用传入的颜色或默认颜色
     }
     groups.value.push(newGroup)
     return newGroup.id
@@ -805,7 +815,8 @@ export const useTabStore = defineStore('tabs', () => {
             collapsed: false,
             type: 'manual',
             strategy: 'manual',
-            userEdited: false // 自动创建的暂存区分组
+            userEdited: false, // 自动创建的暂存区分组
+            color: getDefaultGroupColor('manual', '未分组') // 添加默认颜色
           }
           groups.value.push(stagingGroup)
           console.log('创建新的暂存区分组')
@@ -848,6 +859,7 @@ export const useTabStore = defineStore('tabs', () => {
         name: groupData.name,
         icon: groupData.icon,
         type: groupData.type,
+        color: groupData.color || groups.value[groupIndex].color, // 保持现有颜色或使用新颜色
         userEdited: true // 用户编辑过的分组标记为已编辑
       }
       await saveGroups()
@@ -1314,7 +1326,8 @@ export const useTabStore = defineStore('tabs', () => {
             collapsed: false,
             type: 'manual',
             strategy: 'manual',
-            userEdited: false // 自动创建的暂存区分组
+            userEdited: false, // 自动创建的暂存区分组
+            color: getDefaultGroupColor('manual', '未分组') // 添加默认颜色
           }
           groups.value.push(stagingGroup)
         }
@@ -1353,7 +1366,8 @@ export const useTabStore = defineStore('tabs', () => {
             collapsed: false,
             type: 'keyword',
             strategy: 'keyword',
-            userEdited: false // 自动创建的分组
+            userEdited: false, // 自动创建的分组
+            color: getDefaultGroupColor('keyword', keyword) // 添加默认颜色
           }
           groups.value.push(newGroup)
           console.log(`创建新分组 ${newGroup.name} 并添加标签页 ${tab.title}`)
@@ -1370,7 +1384,8 @@ export const useTabStore = defineStore('tabs', () => {
           collapsed: false,
           type: 'keyword',
           strategy: 'keyword',
-          userEdited: false // 自动创建的分组
+          userEdited: false, // 自动创建的分组
+          color: getDefaultGroupColor('keyword', '其他') // 添加默认颜色
         }
           groups.value.push(otherGroup)
         }
@@ -1421,7 +1436,8 @@ export const useTabStore = defineStore('tabs', () => {
           collapsed: false,
           type: 'time',
           strategy: 'time',
-          userEdited: false // 自动创建的分组
+          userEdited: false, // 自动创建的分组
+          color: getDefaultGroupColor('time', timeKey) // 添加默认颜色
         }
         groups.value.push(newGroup)
         console.log(`创建新分组 ${newGroup.name} 并添加标签页 ${tab.title}`)
@@ -1501,7 +1517,8 @@ export const useTabStore = defineStore('tabs', () => {
             collapsed: false,
             type: 'manual',
             strategy: 'manual',
-            userEdited: false
+            userEdited: false,
+            color: getDefaultGroupColor('manual', '未分组') // 添加默认颜色
           }
           groups.value.push(stagingGroup)
           break
@@ -1542,6 +1559,64 @@ export const useTabStore = defineStore('tabs', () => {
       'manual': '手动'
     }
     return strategyNames[strategy] || strategy
+  }
+
+  // 获取分组的默认颜色
+  const getDefaultGroupColor = (type, name = '') => {
+    // 域名分组的默认颜色
+    if (type === 'domain') {
+      const domainColors = {
+        'github.com': '#24292e',
+        'stackoverflow.com': '#f48024',
+        'figma.com': '#f24e1e',
+        'notion.so': '#000000',
+        'google.com': '#4285f4',
+        'youtube.com': '#ff0000',
+        'baidu.com': '#2932e1',
+        'zhihu.com': '#0084ff',
+        'bilibili.com': '#00a1d6',
+        'taobao.com': '#ff6a00',
+        'jd.com': '#e1251b'
+      }
+      return domainColors[name] || '#6366f1' // 默认蓝色
+    }
+    
+    // 关键词分组的默认颜色
+    if (type === 'keyword') {
+      const keywordColors = {
+        '开发': '#059669', // 绿色
+        '设计': '#dc2626', // 红色
+        '文档': '#2563eb', // 蓝色
+        '会议': '#7c3aed', // 紫色
+        '购物': '#ea580c', // 橙色
+        '娱乐': '#db2777', // 粉色
+        '学习': '#0891b2', // 青色
+        '工作': '#059669'  // 绿色
+      }
+      return keywordColors[name] || '#6b7280' // 默认灰色
+    }
+    
+    // 时间分组的默认颜色
+    if (type === 'time') {
+      const timeColors = {
+        'recent': '#dc2626', // 红色（最近）
+        'today': '#2563eb',  // 蓝色（今天）
+        'older': '#6b7280'   // 灰色（更早）
+      }
+      return timeColors[name] || '#6b7280'
+    }
+    
+    // 手动分组的默认颜色
+    if (type === 'manual') {
+      return '#f59e0b' // 橙色
+    }
+    
+    // 暂存区的默认颜色
+    if (name === '未分组' || name === 'Staging') {
+      return '#6b7280' // 灰色
+    }
+    
+    return '#6366f1' // 默认蓝色
   }
 
   return {
