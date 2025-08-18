@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TabTamer 隐私权政策 | Privacy Policy</title>
+    <style>
+      :root {
+        --bg: #0f172a;
+        --card: #111827;
+        --text: #e5e7eb;
+        --muted: #9ca3af;
+        --accent: #60a5fa;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+        background: linear-gradient(135deg, #0b1220 0%, #0f172a 100%);
+        color: var(--text);
+      }
+      .container {
+        max-width: 920px;
+        margin: 48px auto;
+        padding: 0 20px 64px;
+      }
+      .card {
+        background: rgba(17, 24, 39, 0.8);
+        backdrop-filter: saturate(180%) blur(10px);
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        border-radius: 14px;
+        padding: 28px;
+        box-shadow: 0 10px 30px rgba(2, 6, 23, 0.4);
+      }
+      h1 { font-size: 28px; margin: 0 0 8px; }
+      h2 { font-size: 20px; margin: 28px 0 12px; }
+      p, li { line-height: 1.7; color: var(--text); }
+      .muted { color: var(--muted); }
+      a { color: var(--accent); text-decoration: none; }
+      a:hover { text-decoration: underline; }
+      .lang { display: grid; grid-template-columns: 1fr; gap: 24px; }
+      .badge { display: inline-block; padding: 2px 10px; border-radius: 999px; background: rgba(96,165,250,0.15); color: var(--accent); font-size: 12px; border: 1px solid rgba(96,165,250,0.35); }
+      .header {
+        display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 16px;
+      }
+      .meta { font-size: 12px; color: var(--muted); }
+      ul { margin: 8px 0 8px 20px; padding: 0; }
+      code { background: rgba(148,163,184,0.15); padding: 2px 6px; border-radius: 6px; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="card">
+        <div class="header">
+          <h1>TabTamer 隐私权政策</h1>
+          <span class="badge">v1.0 · Last updated: <span class="meta">2025-08-18</span></span>
+        </div>
+        <p class="muted">本隐私政策适用于 Chrome 扩展程序「TabTamer - 标签页管理大师」。我们非常重视您的隐私，仅在本地处理必要的数据以提供标签页分组、休眠与快照等功能。</p>
+
+        <h2>我们收集哪些数据</h2>
+        <p>为实现功能，扩展可能在本地处理以下信息：</p>
+        <ul>
+          <li>标签页元数据：页面标题（<code>document.title</code>）、网址（URL）、站点域名（hostname）</li>
+          <li>标签页状态：是否休眠（discarded）、固定（pinned）、活动状态（active）、上次活跃时间等</li>
+          <li>窗口及分组信息：用于本地分组与快照管理</li>
+        </ul>
+        <p>上述数据仅用于在本地设备上计算与展示，不会上传至任何服务器。</p>
+
+        <h2>数据如何使用</h2>
+        <ul>
+          <li>对标签页进行分组（按域名/关键字/时间等策略）</li>
+          <li>实现休眠/唤醒以优化内存使用</li>
+          <li>在本地保存工作区快照，便于恢复</li>
+        </ul>
+
+        <h2>数据存储与传输</h2>
+        <ul>
+          <li>全部数据保存在本地（Chrome <code>storage.local</code>），不会上传至开发者或第三方服务器</li>
+          <li>扩展不包含任何远程数据采集 SDK，不进行广告追踪</li>
+        </ul>
+
+        <h2>与第三方共享</h2>
+        <p>我们不出售、出租或与第三方共享您的任何个人信息。</p>
+
+        <h2>用户控制与透明度</h2>
+        <ul>
+          <li>您可在扩展的“选项”页面导出/导入或清除数据</li>
+          <li>您可随时卸载扩展以删除本地数据</li>
+        </ul>
+
+        <h2>权限说明</h2>
+        <ul>
+          <li><code>tabs</code> / <code>windows</code>：用于读取标签状态与窗口信息以完成分组/统计</li>
+          <li><code>storage</code>：用于在本地保存设置、分组和快照</li>
+          <li><code>activeTab</code>：在用户操作时访问当前活动标签</li>
+          <li><code>host_permissions: &lt;all_urls&gt;</code> 与内容脚本：用于读取当前页面的标题/URL 以进行本地分组（不上传）</li>
+        </ul>
+
+        <h2>未成年人隐私</h2>
+        <p>本扩展不面向未成年人，也不有意收集儿童的任何信息。</p>
+
+        <h2>政策更新</h2>
+        <p>我们可能不时更新本政策。变更将发布于本页面，重要变更会在版本更新说明中提示。</p>
+
+        <h2>联系我们</h2>
+        <p>若您对本政策有任何问题或建议，请通过 GitHub Issues 与我们联系：
+          <a href="https://github.com/" target="_blank" rel="noopener">GitHub Issues</a>
+        </p>
+      </div>
+
+      <div class="card" style="margin-top: 18px;">
+        <div class="header">
+          <h1>TabTamer Privacy Policy (English)</h1>
+          <span class="badge">v1.0 · Last updated: <span class="meta">2025-08-18</span></span>
+        </div>
+        <p class="muted">This policy applies to the Chrome extension “TabTamer”. We respect your privacy. All processing is done locally to provide tab grouping, memory saving (discard), and workspace snapshots.</p>
+
+        <h2>Data We Process</h2>
+        <ul>
+          <li>Tab metadata: page title (<code>document.title</code>), URL, domain (hostname)</li>
+          <li>Tab state: discarded, pinned, active, last active time</li>
+          <li>Window and group metadata for local grouping and snapshots</li>
+        </ul>
+        <p>All data stays on your device and is not transmitted to any server.</p>
+
+        <h2>How We Use Data</h2>
+        <ul>
+          <li>Group tabs (by domain/keyword/time/manual)</li>
+          <li>Discard/wake tabs to optimize memory usage</li>
+          <li>Create local workspace snapshots for recovery</li>
+        </ul>
+
+        <h2>Storage & Transfer</h2>
+        <ul>
+          <li>All data is stored locally via Chrome <code>storage.local</code></li>
+          <li>No remote analytics, no ad tracking</li>
+        </ul>
+
+        <h2>Sharing</h2>
+        <p>We do not sell, rent, or share your personal information with third parties.</p>
+
+        <h2>User Control</h2>
+        <ul>
+          <li>Export/Import or clear data in the extension Options</li>
+          <li>Uninstall the extension at any time to remove local data</li>
+        </ul>
+
+        <h2>Permissions</h2>
+        <ul>
+          <li><code>tabs</code> / <code>windows</code>: read tab/window state for grouping and stats</li>
+          <li><code>storage</code>: persist settings, groups, and snapshots locally</li>
+          <li><code>activeTab</code>: access the active tab upon user interaction</li>
+          <li><code>host_permissions: &lt;all_urls&gt;</code> and content scripts: read page title/URL for local grouping (no transmission)</li>
+        </ul>
+
+        <h2>Children’s Privacy</h2>
+        <p>Our extension is not directed to children and we do not knowingly collect information from children.</p>
+
+        <h2>Changes</h2>
+        <p>We may update this policy from time to time. Changes will be posted on this page.</p>
+
+        <h2>Contact</h2>
+        <p>Please open a ticket on <a href="https://github.com/" target="_blank" rel="noopener">GitHub Issues</a> if you have questions.</p>
+      </div>
+    </div>
+  </body>
+</html>
+
+
