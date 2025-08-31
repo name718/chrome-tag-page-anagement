@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TabTamer - 隐私政策</title>
+    <style>
+      :root {
+        --bg: #0f172a;
+        --card: #111827;
+        --text: #e5e7eb;
+        --muted: #9ca3af;
+        --accent: #60a5fa;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+        background: linear-gradient(135deg, #0b1220 0%, #0f172a 100%);
+        color: var(--text);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+        text-align: center;
+      }
+      .card {
+        background: rgba(17, 24, 39, 0.8);
+        backdrop-filter: saturate(180%) blur(10px);
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        border-radius: 14px;
+        padding: 40px;
+        box-shadow: 0 10px 30px rgba(2, 6, 23, 0.4);
+      }
+      h1 { 
+        font-size: 32px; 
+        margin: 0 0 16px; 
+        background: linear-gradient(135deg, #60a5fa, #a78bfa);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      p { 
+        line-height: 1.7; 
+        color: var(--text); 
+        margin-bottom: 24px;
+        font-size: 16px;
+      }
+      .muted { color: var(--muted); }
+      .btn {
+        display: inline-block;
+        background: linear-gradient(135deg, #60a5fa, #a78bfa);
+        color: white;
+        padding: 12px 32px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        border: none;
+        cursor: pointer;
+        font-size: 16px;
+      }
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(96, 165, 250, 0.3);
+      }
+      .footer {
+        margin-top: 32px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 999px;
+        background: rgba(96,165,250,0.15);
+        color: var(--accent);
+        font-size: 12px;
+        border: 1px solid rgba(96,165,250,0.35);
+        margin-bottom: 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="card">
+        <div class="badge">TabTamer 隐私政策</div>
+        <h1>隐私保护承诺</h1>
+        <p>我们非常重视您的隐私权。TabTamer 扩展程序仅在本地处理必要的数据，不会收集或上传您的个人信息。</p>
+        <p class="muted">所有数据处理都在您的设备上完成，确保您的隐私安全。</p>
+        
+        <a href="privacy-policy.html" class="btn">查看完整隐私政策</a>
+        
+        <div class="footer">
+          <p>© 2025 TabTamer · 最后更新: 2025-08-31</p>
+          <p>本页面托管于 GitHub Pages</p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
